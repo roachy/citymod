@@ -1,0 +1,12 @@
+"citymod"
+{
+    "title"             "CityMod"
+	"maps"		        "^rp_"
+	"settings"
+	{
+	}
+	"version"	        "0.99"
+	"author"	        "Seraph"
+	"description"       "City Roleplay gamemode by Seraph."
+    "menusystem"        "1"
+}
