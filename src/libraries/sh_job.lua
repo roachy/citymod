@@ -56,7 +56,7 @@ end
 
 function CityMod.Job:Register()
 
-    if (!self.Name) then
+    if (not self.Name) then
         print("No name specified to job in "..debug.getinfo(2, "S").source:sub(2))
         return
     end

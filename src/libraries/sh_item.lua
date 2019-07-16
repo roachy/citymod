@@ -49,7 +49,7 @@ end
 
 function CityMod.Item:Register()
 
-    if (!self.Name) then
+    if (not self.Name) then
         print("No name specified to item in "..debug.getinfo(2, "S").source:sub(2))
         return
     end

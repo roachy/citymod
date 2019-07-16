@@ -1,4 +1,4 @@
---[[if (!CityMod) then
+--[[if (not CityMod) then
     CityMod = CityMod
 else
     CurrentGM = CityMod
