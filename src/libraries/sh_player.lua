@@ -4,10 +4,16 @@ if (CLIENT) then
 
 -- When the player's data has been received on the server
 function CityMod.Player.Load()
-    LocalPlayer().Initialized = true
-    LocalPlayer().IngameName = net.ReadString()
-    LocalPlayer().Money = net.ReadUInt(32)
-    LocalPlayer().Rank = net.ReadUInt(8)
+    local ply = net.ReadEntity()
+    ply.IngameName = net.ReadString()
+    ply.Rank = net.ReadUInt(8)
+
+    -- If it is our own data, set ourselves as initialized and load our personal data
+    if (ply == LocalPlayer()) then
+        ply.Initialized = true
+        ply.Money = net.ReadUInt(32)
+    end
+        
 end
 net.Receive("LoadPlayer", CityMod.Player.Load)
 
@@ -19,6 +25,8 @@ function CityMod.Player.Load(len, ply)
     if (ply.Initialized) then
         return
     end
+
+    ply.Initialized = true
 
     CityMod.Database:Query("SELECT name,staff_rank,money FROM account WHERE account_id = '"..ply:AccountID().."'",function(result)
 
@@ -50,13 +58,27 @@ function CityMod.Player.Load(len, ply)
     ply:SetModel("models/player/breen.mdl")
     ply:SetupHands()
 
-    -- Send the values to the client
-    net.Start("LoadPlayer") -- Iterate over all players instead here.
+    -- Send information about the loaded player to all players
+    for k,v in pairs(player.GetAll()) do
+        net.Start("LoadPlayer")
+            net.WriteEntity(ply)
+
+            -- Public data available for everyone to see
+            net.WriteString(ply.IngameName)
+            net.WriteUInt(ply.Rank, 8)
+
+            -- If the iterated player is equivalent to the player itself, send them their personal data, such as money.
+            if (ply == v) then
+                -- Private data only the player themself should know
+                net.WriteUInt(ply.Money, 32)
+            end
+
+        net.Send(v)
+    end
+
+
     --net.WriteBool(false) -- Write bool depending on if it is the player self, or another player. If self, send whole thing like money etc. If not, send only the "public" info like name.
-    net.WriteString(ply.IngameName)
-    net.WriteUInt(ply.Money, 32)
-    net.WriteUInt(ply.Rank, 8)
-    net.Send(ply)
+    
 
     if (new) then -- Do more stuff (Tutorial things maybe?)
         print(ply:Name().." ("..ply:SteamID()..") has been initialized for the first time")
