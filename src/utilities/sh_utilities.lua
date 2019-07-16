@@ -44,7 +44,7 @@ function CityMod.Utilities:StringTimeToMins(str)
 end
 
 function CityMod.Utilities:MinsToString(time)
-    if(!time or type(time) != "number") then
+    if(not time or type(time) ~= "number") then
         return "Invalid Number"
     end
 

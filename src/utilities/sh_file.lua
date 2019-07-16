@@ -5,7 +5,7 @@ function CityMod.File:Include(fileName)
     local isClient = (string.find(fileName, "cl_"))
     local isServer = (string.find(fileName, "sv_"))
 
-    if (isServer and !SERVER) then
+    if (isServer and not SERVER) then
         error("Serverside file "..fileName.." was attempted to be included on client",2)
         return
     end
@@ -25,7 +25,7 @@ function CityMod.File:IncludeDir(directory, fromBase)
         directory = "CityMod/src/"..directory
     end
 
-    if (string.sub(directory, -1) != "/") then
+    if (string.sub(directory, -1) ~= "/") then
         directory = directory.."/"
     end
 

@@ -8,7 +8,7 @@ local amount = tonumber(args[1])
 
 print(amount)
 
-if (!amount) then
+if (not amount) then
     notification.AddLegacy("You must specify an amount of money. You have to roll higher than 55 to double the money.",1,5)
     return
 end

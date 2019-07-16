@@ -8,7 +8,7 @@ function CityMod.Library:New(name)
         return
     end
 
-    if (_libraries[name] != nil) then
+    if (_libraries[name] ~= nil) then
         error("Library with name "..name.." already exists.",2)
     end
 

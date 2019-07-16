@@ -10,7 +10,7 @@ end
 
 function CMD:Execute(ply,args)
 
-if (!args[1]) then -- Default roll from 1 to 100
+if (not args[1]) then -- Default roll from 1 to 100
     Roll(ply,1,100)
     return
 end
@@ -19,7 +19,7 @@ local customRollParameters = string.Split(args[1],"-") -- If the player specifie
 local start = tonumber(customRollParameters[1])
 local limit = tonumber(customRollParameters[2])
 
-if (!start || !limit) then
+if (not start or not limit) then
     local exStart = math.random(1,999)
     local exLimit = math.random(exStart,1000)
     print("You must supply a valid roll parameter, ex. 1-100 or "..exStart.."-"..exLimit)
