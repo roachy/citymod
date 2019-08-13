@@ -1,0 +1,20 @@
+language: python
+sudo: false
+
+before_install:
+  - pip install hererocks
+#  - pip install codecov
+  - hererocks $HOME/env --luajit=2.1 -r latest
+  - source $HOME/env/bin/activate
+#  - luarocks install busted
+#  - luarocks install cluacov
+  - luarocks install lanes
+  - luarocks install luacheck
+
+script:
+#  - busted -c
+  - luacheck .
+
+#after_script:
+#  - luacov
+#  - codecov -f luacov.report.out -X gcov
