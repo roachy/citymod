@@ -1,1 +1,1 @@
-print("Config")
+CityMod.Config = CityMod.Library:New("Config")
