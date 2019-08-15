@@ -53,8 +53,10 @@ CityMod.File:IncludeDir("metatables")
 
 -- Begin loading CityMod content. This is content and systems that extends the gamemode
 CityMod.File:IncludeDir("commands")
-CityMod.File:Include("maps/sh_"..game.GetMap()..".lua") -- Load settings for the current map
+CityMod.File:IncludeDir("items")
+CityMod.File:IncludeDir("items/contraband")
 CityMod.File:IncludeDir("config")
+CityMod.File:Include("maps/sh_"..game.GetMap()..".lua") -- Load settings for the current map
 
 
 

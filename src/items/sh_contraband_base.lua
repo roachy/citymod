@@ -1,4 +1,4 @@
-local BASE = CityMod.Item:NewCategory("contraband")
+local BASE = CityMod.Item.Category:New("Contraband")
 
 function BASE:Execute()
     print("Baseclass function here")

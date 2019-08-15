@@ -1,74 +1,64 @@
 CityMod.Item = CityMod.Library:New("Item")
+CityMod.Item.Category = {}
+
+local CLASS_TABLE = {__index = CLASS_TABLE}
+
+-- Set default values of an item
+CLASS_TABLE.Name = "Base Item"
+CLASS_TABLE.Cost = 0
+CLASS_TABLE.Batch = 10
+CLASS_TABLE.Model = "models/error.mdl";
+CLASS_TABLE.Weight = 1
+CLASS_TABLE.Category = "None"
+CLASS_TABLE.Description = "Sample item"
+CLASS_TABLE.ConsumeOnUse = true -- In most cases, an item will be consumed on use
 
 local _items = {}
+local _categories = {}
 
--- Note: Had to make use of "GAME" as client did not seem to accept "LUA" for whatever fucking reason it had. It is pretty easy to change functionality over once it works again however.
-function CityMod.Item:Load(directory)
-
-    if (directory == nil) then
-    directory = "items"
-    end
-
-    local directory = debug.getinfo(2, "S").source:sub(2):match("(.*/)")..directory
-    local files,dirs = file.Find(directory.."/*", "GAME", "namedesc")
-
-    if (#files > #dirs) then
-        print("[CityMod] Item -> There are more baseclasses than categories")
-        return
-    end
-
-    for k, v in pairs(files) do
-        CityMod.File:Include(directory:sub(11).."/"..v)
-        
-        local f = string.StripExtension(v):sub(4) -- sub to remove the "sh_"
-        local _categoryDir = directory.."/"..f
-        if (file.Exists(_categoryDir,"GAME")) then
-            local filesCategory,dirsCategory = file.Find(_categoryDir.."/*.lua", "game", "namedesc")
-            
-            for k2,v2 in pairs(filesCategory) do
-                CityMod.File:Include(_categoryDir:sub(11).."/"..v2)
-            end
-        else
-            print("[CityMod] Item -> Baseclass '"..f.."' is missing a category folder") 
-            return
-        end
-    end
-end
-
-function CityMod.Item:New(categoryName)
-    local object = {}
-    setmetatable(object,self)
-    
-    if (categoryName) then
-        object.__index = object
-        object.Category = categoryName
-        -- Do more stuff here for categories, such as GUI or just store the things in _items
-    end
+-- Creation of a new item object
+function CityMod.Item:New(id) -- The ID of the item
+    local object = CityMod.Metatable:New(CLASS_TABLE)
+    object.Id = id
     return object
 end
 
-function CityMod.Item:Register()
+function CLASS_TABLE:Register()
+    if (self.Id == nil) then -- If name is nil, it is a category
+        return CityMod.Item.Category:Register(self)
+    end
 
-    if (not self.Name) then
-        print("No name specified to item in "..debug.getinfo(2, "S").source:sub(2))
+    return CityMod.Item:Register(self)
+end
+
+-- Registering a new item
+function CityMod.Item:Register(data)
+
+    if (not data.Id) then
+        print("No ID specified to item in file "..debug.getinfo(2, "S").source:sub(2))
         return
     end
 
-    _items[string.StripExtension(string.GetFileFromFilename(debug.getinfo(2, "S").source:sub(2)))] = self
-
-    -- Remove shared useless things
-    self.Id = nil
-
-    -- Remove things that are useless for client for optimization
-    if (CLIENT) then
-        self.Execute = nil
+    -- Set the category of the item
+    if (data.Category == "None") then
+        print("Item with name "..data.Name.." does not have a category")
+        return
     end
 
-    -- Remove things that are useless for server for optimization
-    if (SERVER) then
-        self.Name = nil
+    -- Get the category
+    local category = CityMod.Item.Category:Get(data.Category)
+
+    if (category == nil) then
+        print("Category with name "..data.Category.." does not exist")
     end
 
+    -- Set metatable to the category
+    setmetatable(data, category)
+
+    print(data:Execute())
+
+    -- Store the item by its ID
+    _items[data.Id] = self
 end
 
 function CityMod.Item:Get(item)
@@ -77,4 +67,24 @@ end
 
 function CityMod.Item:GetAll()
     return _items
+end
+
+-- Creating a new item category
+function CityMod.Item.Category:New(categoryName)
+    local object = CityMod.Metatable:New(CLASS_TABLE)
+    object.__index = object -- Set index to have baseclass be callable by children
+    object.Category = categoryName
+    return object
+end
+
+function CityMod.Item.Category:Register(data)
+    _categories[data.Category] = data -- Store the category
+end
+
+function CityMod.Item.Category:Get(category)
+    return _categories[category]
+end
+
+function CityMod.Item.Category:GetAll()
+    return _categories
 end
