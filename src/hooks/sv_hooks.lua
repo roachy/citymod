@@ -23,7 +23,7 @@ function CityMod:PlayerNoClip(ply)
 end
 
 function CityMod:CanPlayerEnterVehicle(ply,veh,role)
-    return CityMod.Map().CanDriveCars
+    return CityMod.Map:Get().CanDriveCars
 end
 
 function CityMod:PlayerEnteredVehicle(ply,veh,role)
@@ -47,8 +47,8 @@ end
 
 function CityMod:PhysgunPickup(ply, ent)
 
-    -- Allow picking up players if the player is an admin
-    if (ent:IsPlayer() and ply:IsAdmin()) then
+    -- Allow picking up players if the player is a moderator
+    if (ent:IsPlayer() and ply:HasModeratorRank()) then
         ent:Freeze(true)
 		ent:SetMoveType(MOVETYPE_NONE)
         return true
@@ -61,7 +61,6 @@ function CityMod:PhysgunPickup(ply, ent)
 
     return false
 end
-
 
 function CityMod:PhysgunDrop(ply,ent)
     if (ent:IsPlayer() and ply:HasAdminRank()) then
@@ -79,24 +78,12 @@ function CityMod:CheckPassword(steamID64, ipAddress, svPassword, clPassword, nam
     CityMod.Database:Query("SELECT ban_expiration,ban_reason FROM ban WHERE steam_id = '"..steamid.."' AND ban_expiration > NOW()",function(result)
         -- If no current bans were found on the player, return
         if (#result == 0) then
-            return true
+            return
         end
 
-        -- At this point, the player has a ban. Kick them and show their banned message
-        game.KickID(steamid32, v.ban_reason)
-        return false, "#GameUI_ConnectionFailed"
+        local ban_reason = "You have been banned for the following reason: "..v.ban_reason.."\nYour ban will expire on: "..v.ban_expiration
+
+        -- At this point, the player has a ban. Return false and show their ban reason
+        return false, ban_reason
     end)
 end
-
---[[gameevent.Listen( "player_connect" ) -- Deprecated, use CheckPassword
-hook.Add( "player_connect", "CityModPlayerConnect", function(data)
-	for k, v in pairs( player.GetAll() ) do
-		v:ChatPrint( data.name .. " has connected to the server." )
-    end
-
-    -- Check if player is banned
-    
-
-    -- Create an idle loading timer before a kick will occur
-    timer.Create(data.networkid.." KickTimer", 1200, 1, function() RunConsoleCommand("kickid", data.userid, "You took too long to load the server. Please rejoin.") end)
-end)]]

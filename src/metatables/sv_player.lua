@@ -38,8 +38,3 @@ end
 function playerMeta:HasModeratorRank()
     return CityMod.Rank:IsModerator(self)
 end
-
--- Check whether the player has player rank
-function playerMeta:HasPlayerRank()
-    return CityMod.Rank:IsPlayer(self)
-end
