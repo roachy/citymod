@@ -1,5 +1,7 @@
-CityMod.Item.Contraband = CityMod.Item:New("contraband")
+local BASE = CityMod.Item:NewCategory("contraband")
 
-function CityMod.Item.Contraband:Execute()
-print("Baseclass function here")
+function BASE:Execute()
+    print("Baseclass function here")
 end
+
+BASE:Register()
