@@ -19,7 +19,7 @@ function CityMod:PlayerLoadout(ply)
 end
 
 function CityMod:PlayerNoClip(ply)
-    return ply:HasModeratorRank()
+    return ply:HasModeratorRank() -- Only allow moderators to noclip
 end
 
 function CityMod:CanPlayerEnterVehicle(ply,veh,role)
@@ -74,7 +74,18 @@ function CityMod:PhysgunDrop(ply,ent)
 end
 
 function CityMod:CheckPassword(steamID64, ipAddress, svPassword, clPassword, name)
+    local steamid32 = util.SteamIDFrom64(steamID64)
 
+    CityMod.Database:Query("SELECT ban_expiration,ban_reason FROM ban WHERE steam_id = '"..steamid.."' AND ban_expiration > NOW()",function(result)
+        -- If no current bans were found on the player, return
+        if (#result == 0) then
+            return true
+        end
+
+        -- At this point, the player has a ban. Kick them and show their banned message
+        game.KickID(steamid32, v.ban_reason)
+        return false, "#GameUI_ConnectionFailed"
+    end)
 end
 
 --[[gameevent.Listen( "player_connect" ) -- Deprecated, use CheckPassword

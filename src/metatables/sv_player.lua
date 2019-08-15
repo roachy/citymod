@@ -24,18 +24,22 @@ function playerMeta:NotifyHint(text, length)
     CityMod.Player:Notify(self, text, 3, length)
 end
 
+-- Check whether the player has owner rank
 function playerMeta:HasOwnerRank()
     return CityMod.Rank:IsOwner(self)
 end
 
+-- Check whether the player has admin rank
 function playerMeta:HasAdminRank()
     return CityMod.Rank:IsAdmin(self)
 end
 
+-- Check whether the player has moderator rank
 function playerMeta:HasModeratorRank()
     return CityMod.Rank:IsModerator(self)
 end
 
+-- Check whether the player has player rank
 function playerMeta:HasPlayerRank()
     return CityMod.Rank:IsPlayer(self)
 end

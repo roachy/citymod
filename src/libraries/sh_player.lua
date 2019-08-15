@@ -67,9 +67,10 @@ function CityMod.Player.Load(len, ply)
     if (#result == 0) then
         local stmt = CityMod.PreparedStatement.InsertAccountDetail
         stmt:setNumber(1,ply:AccountID())
-        stmt:setString(2,"John Cena")
-        stmt:setNumber(3,CityMod.Rank.Player)
-        stmt:setNumber(4,12345)
+        stmt:setString(2,ply:SteamID())
+        stmt:setString(3,"John Cena")
+        stmt:setNumber(4,CityMod.Rank.Player)
+        stmt:setNumber(5,12345)
         stmt:start()
 
         isNewPlayer = true
