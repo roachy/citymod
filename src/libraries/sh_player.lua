@@ -29,14 +29,25 @@ function CityMod.Player.LoadInventory()
     -- Set our inventory to the one we received from the server
     LocalPlayer().Inventory = net.ReadTable()
 
-    PrintTable(LocalPlayer().Inventory)
+    print("Our inventory was received on the clientside!")
 end
 net.Receive("LoadInventory", CityMod.Player.LoadInventory)
+
+-- Show the player a notification
+function CityMod.Player.Notify()
+    local text = net.ReadString()
+    local type = net.ReadUInt(3)
+    local length = net.ReadUInt(8)
+
+    notification.AddLegacy(text, type, length)
+end
+net.Receive("NotifyPlayer", CityMod.Player.Notify)
 
 else -- SERVER
 
 util.AddNetworkString("LoadPlayer")
 util.AddNetworkString("LoadInventory")
+util.AddNetworkString("NotifyPlayer")
 
 function CityMod.Player.Load(len, ply)
     if (ply.Initialized) then
@@ -49,7 +60,7 @@ function CityMod.Player.Load(len, ply)
 
     local newPlayer = false
 
-    -- If player does not exist, create them with default stats.
+    -- If the player does not exist in the database, create them with default stats.
     if (#result == 0) then
         local stmt = CityMod.PreparedStatement.InsertAccountDetail
         stmt:setNumber(1,ply:AccountID())
@@ -94,12 +105,11 @@ function CityMod.Player.Load(len, ply)
     end
 
     if (new) then -- Do more stuff (Tutorial things maybe?)
-        print(ply:Name().." ("..ply:SteamID()..") has been initialized for the first time")
+        ply:LogIP("has been initialized for the first time")
         return
     end
 
-
-    print(ply:Name().." ("..ply:SteamID()..") has been initialized")
+    ply:LogIP("has been initialized")
     CityMod.Player:LoadInventory(ply) -- Load the player's inventory
     end)
 end
@@ -120,6 +130,8 @@ function CityMod.Player:LoadInventory(ply)
             ply.Inventory[v.item_id][v.modifier] = v.amount
         end
 
+        ply:LogIP("finished loading inventory")
+
         -- Send the player their inventory
         net.Start("LoadInventory")
         net.WriteTable(ply.Inventory)
@@ -127,8 +139,20 @@ function CityMod.Player:LoadInventory(ply)
     end)
 end
 
-end -- SHARED
+-- Send a notification to the player
+function CityMod.Player:Notify(ply, text, type, length)
+    if (length == nil) then -- Set default length if it was not specified
+        length = 3
+    end
 
+    net.Start("NotifyPlayer")
+    net.WriteString(text)
+    net.WriteUInt(type,3) -- 3 bits is enough
+    net.WriteUInt(length,8)
+    net.Send(ply)
+end
+
+end -- SHARED
 
 
 function CityMod.Player:FindByID(id)

@@ -5,15 +5,19 @@ __call = function(self,text,...) CityMod.Log.Log(text,...) end}
 )
 
 function CityMod.Log.Log(text,...)
-    print(string.format(text,...))
+    local str = ... ..text
+
+    print(str)
+
+    -- TODO: Log to file and MySQL here as well
 end
 
 function CityMod.Log.Player(ply,text)
-    CityMod.Log.Log(text,ply:Name().." ("..ply:SteamID()..")")
+    CityMod.Log.Log(text,ply:Name().." ("..ply:SteamID()..") ")
 end
 
 function CityMod.Log.PlayerIP(ply,text)
-    CityMod.Log.Log(text,ply:Name().." ("..ply:SteamID()..") ["..ply:IPAddress().."]")
+    CityMod.Log.Log(text,ply:Name().." ("..ply:SteamID()..") ["..ply:IPAddress().."] ") -- IP will be "loopback" on a local IP
 end
 
 -- Set metamethods on the player object for simplifying logging
