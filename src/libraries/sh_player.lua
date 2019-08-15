@@ -56,6 +56,9 @@ function CityMod.Player.Load(len, ply)
 
     ply.Initialized = true
 
+    -- Removes the kick timer
+    timer.Remove(ply:SteamID().." KickTimer")
+
     CityMod.Database:Query("SELECT name,staff_rank,money FROM account WHERE account_id = '"..ply:AccountID().."'",function(result)
 
     local newPlayer = false

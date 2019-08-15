@@ -13,7 +13,6 @@ function CityMod:HUDShouldDraw(hud)
     return true
 end
 
-
 hook.Add("HUDPaint", "CityModHUD", function()
 
     local client = LocalPlayer()
@@ -78,20 +77,40 @@ hook.Add("HUDPaint", "CityModHUD", function()
     end
 end)
 
-
-function HideHud(name)
+hook.Add("HUDShouldDraw", "HideDefaultHud", function(name)
     for k, v in pairs({"CHudHealth", "CHudBattery", "CHudAmmo", "CHudSecondaryAmmo"}) do
         if name == v then
             return false
         end
     end
-end
-hook.Add("HUDShouldDraw", "HideDefaultHud", HideHud)
+end)
 
 function CityMod:PlayerBindPress(ply,bind,pressed)
-    if (bind == "gm_showhelp") then
+
+    if (bind == "gm_showhelp") then -- F1
         if (pressed) then
             RunString(file.Read("gamemodes/citymod/menu.lua", true))
+        end
+        return true
+    end
+
+    if (bind == "gm_showteam") then -- F2
+        if (pressed) then
+            print("Pressed F2")
+        end
+        return true
+    end
+
+    if (bind == "gm_showspare1") then -- F3
+        if (pressed) then
+            print("Pressed F3")
+        end
+        return true
+    end
+
+    if (bind == "gm_showspare2") then -- F4
+        if (pressed) then
+            print("Pressed F4")
         end
         return true
     end

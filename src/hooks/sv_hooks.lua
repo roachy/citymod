@@ -74,3 +74,16 @@ function CityMod:PhysgunDrop(ply,ent)
 		ent:SetMoveType(MOVETYPE_WALK)
 	end
 end
+
+gameevent.Listen( "player_connect" )
+hook.Add( "player_connect", "CityModPlayerConnect", function(data)
+	for k, v in pairs( player.GetAll() ) do
+		v:ChatPrint( data.name .. " has connected to the server." )
+    end
+
+    -- Check if player is banned
+    
+
+    -- Create an idle loading timer before a kick will occur
+    timer.Create(data.networkid.." KickTimer", 1200, 1, function() RunConsoleCommand("kickid", data.userid, "You took too long to load the server. Please rejoin.") end)
+end)
