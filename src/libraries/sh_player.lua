@@ -2,13 +2,21 @@ CityMod.Player = CityMod.Library:New("Player")
 
 if (CLIENT) then
 
--- When the player's data has been received on the server
+-- When the player has to load a player's data (which could be their own)
 function CityMod.Player.Load()
+    -- Read the player from the server
     local ply = net.ReadEntity()
+
+    -- Set public data (name, rank etc)
     ply.IngameName = net.ReadString()
     ply.Rank = net.ReadUInt(8)
 
-    -- If it is our own data, set ourselves as initialized and load our personal data
+    -- If we have already been initialized, we can skip the next few steps
+    if (LocalPlayer().Initialized) then
+        return
+    end
+
+    -- If it is our own data, set ourselves as initialized and load our personal data (such as money)
     if (ply == LocalPlayer()) then
         ply.Initialized = true
         ply.Money = net.ReadUInt(32)
@@ -17,9 +25,18 @@ function CityMod.Player.Load()
 end
 net.Receive("LoadPlayer", CityMod.Player.Load)
 
+function CityMod.Player.LoadInventory()
+    -- Set our inventory to the one we received from the server
+    LocalPlayer().Inventory = net.ReadTable()
+
+    PrintTable(LocalPlayer().Inventory)
+end
+net.Receive("LoadInventory", CityMod.Player.LoadInventory)
+
 else -- SERVER
 
 util.AddNetworkString("LoadPlayer")
+util.AddNetworkString("LoadInventory")
 
 function CityMod.Player.Load(len, ply)
     if (ply.Initialized) then
@@ -69,16 +86,12 @@ function CityMod.Player.Load(len, ply)
 
             -- If the iterated player is equivalent to the player itself, send them their personal data, such as money.
             if (ply == v) then
-                -- Private data only the player themself should know
+                -- Private data only the player themself should know (money ex)
                 net.WriteUInt(ply.Money, 32)
             end
 
         net.Send(v)
     end
-
-
-    --net.WriteBool(false) -- Write bool depending on if it is the player self, or another player. If self, send whole thing like money etc. If not, send only the "public" info like name.
-    
 
     if (new) then -- Do more stuff (Tutorial things maybe?)
         print(ply:Name().." ("..ply:SteamID()..") has been initialized for the first time")
@@ -87,9 +100,32 @@ function CityMod.Player.Load(len, ply)
 
 
     print(ply:Name().." ("..ply:SteamID()..") has been initialized")
+    CityMod.Player:LoadInventory(ply) -- Load the player's inventory
     end)
 end
 net.Receive("LoadPlayer", CityMod.Player.Load)
+
+function CityMod.Player:LoadInventory(ply)
+    -- Create the player's inventory
+    ply.Inventory = {}
+
+    -- Iterate over their inventory and add items
+    CityMod.Database:Query("SELECT item_id,modifier,amount FROM account_inventory WHERE account_id = '"..ply:AccountID().."'",function(result)
+        for _,v in pairs(result) do
+            if (ply.Inventory[v.item_id] == nil) then -- Create item ID in player's inventory if it does not exist
+                ply.Inventory[v.item_id] = {}
+            end
+
+            -- Set the item's modifier and amount. A single item id can have multiple modifiers with a certain amount (Ex. 20 bullets in a magazine, 32 bullets in another magazine, although they are the same type)
+            ply.Inventory[v.item_id][v.modifier] = v.amount
+        end
+
+        -- Send the player their inventory
+        net.Start("LoadInventory")
+        net.WriteTable(ply.Inventory)
+        net.Send(ply)
+    end)
+end
 
 end -- SHARED
 
