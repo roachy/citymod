@@ -23,3 +23,19 @@ end
 function playerMeta:NotifyHint(text, length)
     CityMod.Player:Notify(self, text, 3, length)
 end
+
+function playerMeta:HasOwnerRank()
+    return CityMod.Rank:IsOwner(self)
+end
+
+function playerMeta:HasAdminRank()
+    return CityMod.Rank:IsAdmin(self)
+end
+
+function playerMeta:HasModeratorRank()
+    return CityMod.Rank:IsModerator(self)
+end
+
+function playerMeta:HasPlayerRank()
+    return CityMod.Rank:IsPlayer(self)
+end

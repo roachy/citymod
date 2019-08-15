@@ -2,7 +2,7 @@ CityMod.Player = CityMod.Library:New("Player")
 
 if (CLIENT) then
 
--- When the player has to load a player's data (which could be their own)
+-- When the player has to load a player's data (which could be their own data)
 function CityMod.Player.Load()
     -- Read the player from the server
     local ply = net.ReadEntity()
@@ -50,7 +50,7 @@ util.AddNetworkString("LoadInventory")
 util.AddNetworkString("NotifyPlayer")
 
 function CityMod.Player.Load(len, ply)
-    if (ply.Initialized) then
+    if (ply.Initialized) then -- Do not allow the player to initialize themself again if they have already been initialized
         return
     end
 
@@ -79,7 +79,7 @@ function CityMod.Player.Load(len, ply)
         
     ply.IngameName = result[1].name or "John Cena"
     ply.Money = result[1].money or 12345
-    ply.Rank = result[1].rank or 3
+    ply.Rank = result[1].staff_rank or 3
 
     -- Allow the player to move
     ply:UnLock()

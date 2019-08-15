@@ -1,4 +1,3 @@
--- Gamemode Functions
 function CityMod:PlayerSpawn(ply)
     if (not ply.Initialized and not ply:IsBot()) then
         ply:Lock()
@@ -20,7 +19,7 @@ function CityMod:PlayerLoadout(ply)
 end
 
 function CityMod:PlayerNoClip(ply)
-    return ply.Rank <= CityMod.Rank.Moderator
+    return ply:HasModeratorRank()
 end
 
 function CityMod:CanPlayerEnterVehicle(ply,veh,role)
@@ -41,10 +40,10 @@ function CityMod:PlayerEnteredVehicle(ply,veh,role)
     ply:SendPacket(packet)
 end
 
+-- Determines whether a player can suicide
 function CityMod:CanPlayerSuicide(ply)
-	return ply:IsSuperAdmin()
+	return ply:HasModeratorRank()
 end
-
 
 function CityMod:PhysgunPickup(ply, ent)
 
@@ -65,8 +64,7 @@ end
 
 
 function CityMod:PhysgunDrop(ply,ent)
-
-    if (ent:IsPlayer() and ply:IsAdmin()) then
+    if (ent:IsPlayer() and ply:HasAdminRank()) then
         if ply:KeyPressed(IN_ATTACK2) then return end
         
 		ent:DropToFloor()
@@ -75,7 +73,11 @@ function CityMod:PhysgunDrop(ply,ent)
 	end
 end
 
-gameevent.Listen( "player_connect" )
+function CityMod:CheckPassword(steamID64, ipAddress, svPassword, clPassword, name)
+
+end
+
+--[[gameevent.Listen( "player_connect" ) -- Deprecated, use CheckPassword
 hook.Add( "player_connect", "CityModPlayerConnect", function(data)
 	for k, v in pairs( player.GetAll() ) do
 		v:ChatPrint( data.name .. " has connected to the server." )
@@ -86,4 +88,4 @@ hook.Add( "player_connect", "CityModPlayerConnect", function(data)
 
     -- Create an idle loading timer before a kick will occur
     timer.Create(data.networkid.." KickTimer", 1200, 1, function() RunConsoleCommand("kickid", data.userid, "You took too long to load the server. Please rejoin.") end)
-end)
+end)]]

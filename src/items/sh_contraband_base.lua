@@ -1,7 +1,7 @@
 local BASE = CityMod.Item.Category:New("Contraband")
+BASE.Test = "awer"
 
 function BASE:Execute()
-    print("Baseclass function here")
 end
 
 BASE:Register()
