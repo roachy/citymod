@@ -55,16 +55,18 @@ function CityMod.Item:Register()
     end
 
     _items[string.StripExtension(string.GetFileFromFilename(debug.getinfo(2, "S").source:sub(2)))] = self
+
+    -- Remove shared useless things
     self.Id = nil
 
-    -- Remove things that are useless for client
+    -- Remove things that are useless for client for optimization
     if (CLIENT) then
-    self.Execute = nil
+        self.Execute = nil
     end
 
-    -- Remove things that are useless for server
+    -- Remove things that are useless for server for optimization
     if (SERVER) then
-    self.Name = nil
+        self.Name = nil
     end
 
 end

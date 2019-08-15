@@ -3,7 +3,7 @@ include("citymod/src/sh_main.lua")
 print(">> Finished loading shared")
 
 print("Connecting to database...")
-CityMod.Database:Connect("127.0.0.1","root","root","citymod",3306)
+CityMod.Database:Connect(CityMod.Config["MySQL Host"], CityMod.Config["MySQL Username"], CityMod.Config["MySQL Password"], CityMod.Config["MySQL Database"], CityMod.Config["MySQL Port"])
 print(">> Finished connecting to database")
 
 print("Starting donation timer...")
