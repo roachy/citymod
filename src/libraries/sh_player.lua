@@ -72,14 +72,14 @@ function CityMod.Player.Load(len, ply)
         stmt:setNumber(4,12345)
         stmt:start()
 
-        newPlayer = true
+        isNewPlayer = true
             
         result[1] = {}
     end
         
-    ply.IngameName = result[1].name or "Brian Johnson"
-    ply.Money = result[1].money or 10000
-    ply.Rank = result[1].rank or 1
+    ply.IngameName = result[1].name or "John Cena"
+    ply.Money = result[1].money or 12345
+    ply.Rank = result[1].rank or 3
 
     -- Allow the player to move
     ply:UnLock()
@@ -107,18 +107,18 @@ function CityMod.Player.Load(len, ply)
         net.Send(v)
     end
 
-    if (new) then -- Do more stuff (Tutorial things maybe?)
+    if (isNewPlayer) then -- Do more stuff (Tutorial things maybe?)
         ply:LogIP("has been initialized for the first time")
-        return
+    else
+        ply:LogIP("has been initialized")
     end
-
-    ply:LogIP("has been initialized")
-    CityMod.Player:LoadInventory(ply) -- Load the player's inventory
+    
+    CityMod.Player:LoadInventory(ply, isNewPlayer) -- Load the player's inventory
     end)
 end
 net.Receive("LoadPlayer", CityMod.Player.Load)
 
-function CityMod.Player:LoadInventory(ply)
+function CityMod.Player:LoadInventory(ply, isNewPlayer)
     -- Create the player's inventory
     ply.Inventory = {}
 
