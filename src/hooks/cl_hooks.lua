@@ -85,6 +85,7 @@ hook.Add("HUDShouldDraw", "HideDefaultHud", function(name)
     end
 end)
 
+-- Called when a player presses a bind on the server-side
 function CityMod:PlayerBindPress(ply,bind,pressed)
 
     if (bind == "gm_showhelp") then -- F1
@@ -110,7 +111,7 @@ function CityMod:PlayerBindPress(ply,bind,pressed)
 
     if (bind == "gm_showspare2") then -- F4
         if (pressed) then
-            print("Pressed F4")
+            local panel = vgui.Create("CityModSampleMenu")
         end
         return true
     end

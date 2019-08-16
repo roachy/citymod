@@ -27,7 +27,7 @@ local _endTime = os.clock()
 if (CityModLoaded) then
 MsgC(Color(0,255,255),"CityMod Serverside Autorefresh took "..math.Round(_endTime - _startTime,2).." seconds\n")
 else
-MsgC(Color(0,255,255),"CityMod initialized on "..os.date("%d/%m/%Y - %H:%M:%S" , os.time())..". It took "..math.Round(_endTime - _startTime,2).." seconds to load.\n")
+MsgC(Color(0,255,255),"CityMod Serverside initialized on "..os.date("%d/%m/%Y - %H:%M:%S" , os.time())..". It took "..math.Round(_endTime - _startTime,2).." seconds to load.\n")
 end
 
 CityModLoaded = true
