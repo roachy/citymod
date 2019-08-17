@@ -124,14 +124,16 @@ function CityMod.Player:LoadInventory(ply, isNewPlayer)
     ply.Inventory = {}
 
     -- Iterate over their inventory and add items
-    CityMod.Database:Query("SELECT item_id,modifier,amount FROM account_inventory WHERE account_id = '"..ply:AccountID().."'",function(result)
+    CityMod.Database:Query("SELECT inventory_slot,item_id,modifier,amount FROM account_inventory WHERE account_id = '"..ply:AccountID().."'",function(result)
         for _,v in pairs(result) do
-            if (ply.Inventory[v.item_id] == nil) then -- Create item ID in player's inventory if it does not exist
-                ply.Inventory[v.item_id] = {}
+            if (ply.Inventory[v.inventory_slot] == nil) then -- Create item ID in player's inventory if it does not exist
+                ply.Inventory[v.inventory_slot] = {}
             end
 
-            -- Set the item's modifier and amount. A single item id can have multiple modifiers with a certain amount (Ex. 20 bullets in a magazine, 32 bullets in another magazine, although they are the same type)
-            ply.Inventory[v.item_id][v.modifier] = v.amount
+            -- Set the inventory slot's item id, modifier, and amount.
+            ply.Inventory[v.inventory_slot].ItemId = v.item_id
+            ply.Inventory[v.inventory_slot].Modifier = v.modifier
+            ply.Inventory[v.inventory_slot].Amount = v.amount
         end
 
         ply:LogIP("finished loading inventory")
