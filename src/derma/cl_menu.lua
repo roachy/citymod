@@ -55,31 +55,47 @@ function PANEL:Init()
 		local inventoryPanel = vgui.Create( "DPanel" )
 		inventoryPanel:Receiver( "ItemSlot", function(receiver, tableOfDroppedPanels, isDropped, menuIndex, mouseX, mouseY)
 			
+			-- Check if the item was dropped onto the item slot
 			if (not isDropped) then
 				return
 			end
 
-			-- Do not allow to drag ontop of an existing item for now
-			if (#inventoryPanel:GetChildren() > 0) then
+			-- Grab the previous item slot
+			local previousItemSlot = tableOfDroppedPanels[1]
+			local previousSlotModel = previousItemSlot:GetModel()
+
+			-- Determine whether the receiver already has a child. If yes, we have to swap them
+			if (#receiver:GetChildren() > 0) then
+				-- Grab the previous slot's model
+
+				-- Grab the current slot's model
+				local currentSlot = receiver:GetChild(0)
+				local currentSlotModel = currentSlot:GetModel()
+
+				-- Swap the two slots
+				previousItemSlot:SetModel(currentSlotModel)
+				currentSlot:SetModel(previousSlotModel)
 				return
 			end
 
-			-- TODO: Add swapping
-			local previousItemSlot = tableOfDroppedPanels[1]
 			previousItemSlot:Remove()
 
-			local icon = vgui.Create("SpawnIcon", receiver)
+			local icon = vgui.Create("DModelPanel", receiver)
 			icon:SetSize(80,40)
-			icon:SetModel( LocalPlayer():GetModel() )
+			icon:SetModel( previousSlotModel )
 			icon:SetTooltip(false)
 			icon:Droppable("ItemSlot")
 		end, {} )
 
 		if (i == 5 or i == 2) then
 
-			local icon = vgui.Create( "SpawnIcon", inventoryPanel )
+			local icon = vgui.Create( "DModelPanel", inventoryPanel )
 			icon:SetSize(80,40)
-			icon:SetModel( LocalPlayer():GetModel() )
+			if (i == 2) then
+				icon:SetModel( LocalPlayer():GetModel() )
+			else
+				icon:SetModel( "models/props_phx/gears/bevel24.mdl" )
+			end
 			icon:SetTooltip(false)
 			icon:Droppable("ItemSlot")
 
