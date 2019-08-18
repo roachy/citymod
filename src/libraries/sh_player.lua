@@ -20,6 +20,8 @@ function CityMod.Player.Load()
     if (ply == LocalPlayer()) then
         ply.Initialized = true
         ply.Money = net.ReadUInt(32)
+        ply.MaxInventorySize = net.ReadUInt(32)
+        ply.MaxInventoryWeight = net.ReadUInt(32)
     end
         
 end
@@ -61,60 +63,68 @@ function CityMod.Player.Load(len, ply)
 
     CityMod.Database:Query("SELECT name,staff_rank,money FROM account WHERE account_id = '"..ply:AccountID().."'",function(result)
 
-    local newPlayer = false
+        local isNewPlayer = false
 
-    -- If the player does not exist in the database, create them with default stats.
-    if (#result == 0) then
-        local stmt = CityMod.PreparedStatement.InsertAccountDetail
-        stmt:setNumber(1,ply:AccountID())
-        stmt:setString(2,ply:SteamID())
-        stmt:setString(3,"John Cena")
-        stmt:setNumber(4,CityMod.Rank.Player)
-        stmt:setNumber(5,12345)
-        stmt:start()
-
-        isNewPlayer = true
+        -- If the player does not exist in the database, create them with default stats.
+        if (#result == 0) then
+            isNewPlayer = true
+            result[1] = {}
+        end
             
-        result[1] = {}
-    end
+        ply.IngameName = result[1].name or ply:Name()
+        ply.Rank = result[1].staff_rank or CityMod.Config["Default Rank"]
+        ply.Money = result[1].money or CityMod.Config["Default Money"]
+        ply.MaxInventorySize = result[1].max_inventory_size or CityMod.Config["Default Maximum Inventory Size"]
+        ply.MaxInventoryWeight = result[1].max_inventory_weight or CityMod.Config["Default Maximum Inventory Weight"]
+
+        -- Save the (potentially) new player's data, along with showing message of having been initialized now.
+        if (isNewPlayer) then -- Do more stuff (Tutorial things maybe?)
+            ply:LogIP("has been initialized for the first time")
+
+            -- Save their data immediately
+            local stmt = CityMod.PreparedStatement.InsertAccountDetail
+            stmt:setNumber(1, ply:AccountID())
+            stmt:setString(2, ply:SteamID())
+            stmt:setString(3, ply.IngameName)
+            stmt:setNumber(4, ply.Rank)
+            stmt:setNumber(5, ply.Money)
+            stmt:setNumber(6, ply.MaxInventorySize)
+            stmt:setNumber(7, ply.MaxInventoryWeight)
+            stmt:start()
+
+        else
+            ply:LogIP("has been initialized")
+        end
+
+        -- Allow the player to move
+        ply:UnLock()
+        ply:SetColor(Color(255,255,255,255))
+        ply:SetRenderMode(RENDERMODE_NORMAL)
+        CityMod:PlayerLoadout(ply)
+        ply:SetModel("models/player/breen.mdl")
+        ply:SetupHands()
+
+        -- Send information about the loaded player to all players, including themself
+        for k,v in pairs(player.GetAll()) do
+            net.Start("LoadPlayer")
+                net.WriteEntity(ply)
+
+                -- Public data available for everyone to see
+                net.WriteString(ply.IngameName)
+                net.WriteUInt(ply.Rank, 8)
+
+                -- If the iterated player is equivalent to the player itself, send them their personal data, such as money.
+                if (ply == v) then
+                    -- Private data only the player themself should know (money ex)
+                    net.WriteUInt(ply.Money, 32)
+                    net.WriteUInt(ply.MaxInventorySize, 32)
+                    net.WriteUInt(ply.MaxInventoryWeight, 32)
+                end
+
+            net.Send(v)
+        end
         
-    ply.IngameName = result[1].name or "John Cena"
-    ply.Money = result[1].money or 12345
-    ply.Rank = result[1].staff_rank or 3
-
-    -- Allow the player to move
-    ply:UnLock()
-    ply:SetColor(Color(255,255,255,255))
-    ply:SetRenderMode(RENDERMODE_NORMAL)
-    CityMod:PlayerLoadout(ply)
-    ply:SetModel("models/player/breen.mdl")
-    ply:SetupHands()
-
-    -- Send information about the loaded player to all players
-    for k,v in pairs(player.GetAll()) do
-        net.Start("LoadPlayer")
-            net.WriteEntity(ply)
-
-            -- Public data available for everyone to see
-            net.WriteString(ply.IngameName)
-            net.WriteUInt(ply.Rank, 8)
-
-            -- If the iterated player is equivalent to the player itself, send them their personal data, such as money.
-            if (ply == v) then
-                -- Private data only the player themself should know (money ex)
-                net.WriteUInt(ply.Money, 32)
-            end
-
-        net.Send(v)
-    end
-
-    if (isNewPlayer) then -- Do more stuff (Tutorial things maybe?)
-        ply:LogIP("has been initialized for the first time")
-    else
-        ply:LogIP("has been initialized")
-    end
-    
-    CityMod.Player:LoadInventory(ply, isNewPlayer) -- Load the player's inventory
+        CityMod.Player:LoadInventory(ply, isNewPlayer) -- Load the player's inventory
     end)
 end
 net.Receive("LoadPlayer", CityMod.Player.Load)

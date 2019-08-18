@@ -12,5 +12,5 @@ stmt:start()
 ]]
 
 -- Prepared statements
-CityMod.PreparedStatement.InsertAccountDetail = "INSERT INTO account (`account_id`, `steam_id`, `name`, `staff_rank`, `money`) VALUES(?, ?, ?, ?, ?)"
+CityMod.PreparedStatement.InsertAccountDetail = "INSERT INTO account (`account_id`, `steam_id`, `name`, `staff_rank`, `money`, `max_inventory_size`, `max_inventory_weight`) VALUES(?, ?, ?, ?, ?, ?, ?)"
 CityMod.PreparedStatement.UpdateDonationSetCompleted = "UPDATE donation SET completed = 1, completion_time = ? WHERE id = ?"
