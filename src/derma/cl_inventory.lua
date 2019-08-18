@@ -10,6 +10,9 @@ function PANEL:Init()
 	for i = 0, LocalPlayer().MaxInventorySize do -- Make a loop to create a bunch of panels inside of the DIconLayout
 		local inventorySlot = vgui.Create("CityModInventorySlot", List)
 
+		-- Set the inventory slot's ID
+		inventorySlot.Id = i
+
 		if (ply.Inventory[i] ~= nil) then
 			local itemId = ply.Inventory[i].ItemId
 			local itemModel = CityMod.Item:Get(itemId).Model
