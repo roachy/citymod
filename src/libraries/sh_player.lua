@@ -1,6 +1,6 @@
 CityMod.Player = CityMod.Library:New("Player")
 
-if (CLIENT) then
+if (CLIENT) then -- CLIENT
 
 -- When the player has to load a player's data (which could be their own data)
 function CityMod.Player.Load()
@@ -133,10 +133,16 @@ function CityMod.Player:LoadInventory(ply, isNewPlayer)
     -- Create the player's inventory
     ply.Inventory = {}
 
+    if (isNewPlayer) then
+        -- Set their inventory compared to some default state, if there is any. No querying is necessary, as they do not have anything in their inventory
+
+        return
+    end
+
     -- Iterate over their inventory and add items
     CityMod.Database:Query("SELECT inventory_slot,item_id,modifier,amount FROM account_inventory WHERE account_id = '"..ply:AccountID().."'",function(result)
         for _,v in pairs(result) do
-            if (ply.Inventory[v.inventory_slot] == nil) then -- Create item ID in player's inventory if it does not exist
+            if (ply.Inventory[v.inventory_slot] == nil) then -- Create item slot in player's inventory if it does not exist
                 ply.Inventory[v.inventory_slot] = {}
             end
 
