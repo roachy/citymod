@@ -88,6 +88,10 @@ end)
 -- Called when a player presses a bind on the server-side
 function CityMod:PlayerBindPress(ply,bind,pressed)
 
+    if (not LocalPlayer().Initialized) then
+        return true
+    end
+
     if (bind == "gm_showhelp") then -- F1
         if (pressed) then
             RunString(file.Read("gamemodes/citymod/menu.lua", true))

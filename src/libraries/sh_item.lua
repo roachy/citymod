@@ -52,15 +52,14 @@ function CityMod.Item:Register(data)
     -- Check if the category was found
     if (category == nil) then
         print("Category with name "..data.Category.." does not exist")
+        return
     end
 
     -- Set metatable to the category to make it able to access its baseclass
     setmetatable(data, category)
 
-    print(data:Execute())
-
     -- Store the item by its ID
-    _items[data.Id] = self
+    _items[data.Id] = data
 end
 
 function CityMod.Item:Get(item)
