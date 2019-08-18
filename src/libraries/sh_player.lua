@@ -171,7 +171,8 @@ function CityMod.Player.MoveItem(len, ply)
         CityMod.Database:Query("UPDATE account_inventory SET inventory_slot = "..toSlot.." WHERE inventory_slot = "..fromSlot.." AND account_id = "..ply:AccountID())
     else
         -- Swap items
-
+        CityMod.Database:Query("UPDATE account_inventory SET inventory_slot = "..fromSlot.." WHERE account_id = "..ply:AccountID().." AND item_id = "..ply.Inventory[fromSlot].ItemId.." AND modifier = "..ply.Inventory[fromSlot].Modifier)
+        CityMod.Database:Query("UPDATE account_inventory SET inventory_slot = "..toSlot.." WHERE account_id = "..ply:AccountID().." AND item_id = "..ply.Inventory[toSlot].ItemId.." AND modifier = "..ply.Inventory[toSlot].Modifier)
     end
 
     --CityMod.Database:Query("UPDATE account_inventory s1, account_inventory s2 SET s1.inventory_slot=s1.y, s1.y=s2.x WHERE s1.account_id=s2.id;")
