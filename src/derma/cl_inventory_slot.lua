@@ -15,49 +15,60 @@ function PANEL:Init()
         local previousSlotModel = previousItemSlot:GetModel()
         local previousItemSlotId = previousItemSlot:GetParent().Id
 
-        -- Determine whether the receiver already has a child. If yes, we have to swap them
-        if (#receiver:GetChildren() > 0) then
+        local fromSlot = previousItemSlotId
+        local toSlot = self.Id
 
-            -- Grab the current slot's model
-            local currentSlot = receiver:GetChild(0)
-            local currentSlotModel = currentSlot:GetModel()
+        -- Tell server we want to move the item
+        net.Start("MoveItem")
+            net.WriteUInt(fromSlot, 16)
+            net.WriteUInt(toSlot, 16)
+        net.SendToServer()
 
-            -- Swap the two slots
-            previousItemSlot:SetModel(currentSlotModel)
-            currentSlot:SetModel(previousSlotModel)
-            return
-        end
+        -- Wait for MoveItem callback
+        net.Receive("MoveItem", function()
+            -- Determine whether the receiver already has a child. If yes, we have to swap them
+            if (#receiver:GetChildren() > 0) then
 
-        previousItemSlot:Remove()
+                -- Grab the current slot's model
+                local currentSlot = receiver:GetChild(0)
+                local currentSlotModel = currentSlot:GetModel()
 
-        local modelPanel = vgui.Create("DModelPanel", receiver)
-        modelPanel:SetSize(80,40)
-        modelPanel:SetModel(previousSlotModel)
-        modelPanel:Droppable("ItemSlot")
+                -- Swap the two slots
+                previousItemSlot:SetModel(currentSlotModel)
+                currentSlot:SetModel(previousSlotModel)
+                return
+            end
 
-        local itemActionMenu = function()
-            local dMenu = DermaMenu()
-    
-            dMenu:AddOption("Use", function() print("Used item!") end)
-            dMenu:AddOption("Give")
-            dMenu:AddOption("Drop")
-            dMenu:AddOption("Destroy")
-    
-            dMenu:Open()
-        end
-    
-        modelPanel.DoClick = itemActionMenu
-        modelPanel.DoRightClick = itemActionMenu
+            previousItemSlot:Remove()
 
-        -- Swap the item in the player's inventory based on the inventory's ID
-        local item1 = LocalPlayer().Inventory[self.Id]
-        local item2 = LocalPlayer().Inventory[previousItemSlotId]
+            local modelPanel = vgui.Create("DModelPanel", receiver)
+            modelPanel:SetSize(80,40)
+            modelPanel:SetModel(previousSlotModel)
+            modelPanel:Droppable("ItemSlot")
 
-        LocalPlayer().Inventory[self.Id] = item2
-        LocalPlayer().Inventory[previousItemSlotId] = item1
+            local itemActionMenu = function()
+                local dMenu = DermaMenu()
+        
+                dMenu:AddOption("Use", function() print("Used item!") end)
+                dMenu:AddOption("Give")
+                dMenu:AddOption("Drop")
+                dMenu:AddOption("Destroy")
+        
+                dMenu:Open()
+            end
+        
+            modelPanel.DoClick = itemActionMenu
+            modelPanel.DoRightClick = itemActionMenu
+            
+            -- Swap the item in the player's inventory based on the inventory's ID
+            local item1 = LocalPlayer().Inventory[self.Id]
+            local item2 = LocalPlayer().Inventory[previousItemSlotId]
+
+            LocalPlayer().Inventory[self.Id] = item2
+            LocalPlayer().Inventory[previousItemSlotId] = item1
+        end)
+
     end, {})
-
-    -- Create model panel
 end
 
 vgui.Register("CityModInventorySlot", PANEL, "DPanel")

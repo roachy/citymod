@@ -50,6 +50,7 @@ else -- SERVER
 util.AddNetworkString("LoadPlayer")
 util.AddNetworkString("LoadInventory")
 util.AddNetworkString("NotifyPlayer")
+util.AddNetworkString("MoveItem")
 
 function CityMod.Player.Load(len, ply)
     if (ply.Initialized) then -- Do not allow the player to initialize themself again if they have already been initialized
@@ -128,6 +129,54 @@ function CityMod.Player.Load(len, ply)
     end)
 end
 net.Receive("LoadPlayer", CityMod.Player.Load)
+
+function CityMod.Player.MoveItem(len, ply)
+
+    -- Do not bother with uninitialized players
+    if (not ply.Initialized) then
+        return
+    end
+
+    local fromSlot = net.ReadUInt(16)
+    local toSlot = net.ReadUInt(16)
+
+    -- Fromslot and toslot should not be equal
+    if (fromSlot == toSlot) then
+        return
+    end
+
+    -- Prevent moving the inventory slots outside of bounds
+    if (fromSlot < 0 or fromSlot > ply.MaxInventorySize) then
+        return
+    end
+
+    -- Prevent moving the inventory slots outside of bounds
+    if (toSlot < 0 or toSlot > ply.MaxInventorySize) then
+        return
+    end
+
+    -- Set the inventory item and callback to the client
+    local item1 = ply.Inventory[fromSlot]
+    local item2 = ply.Inventory[toSlot]
+
+    ply.Inventory[fromSlot] = item2
+    ply.Inventory[toSlot] = item1
+
+    -- Tell the client the move is correct
+    net.Start("MoveItem")
+    net.Send(ply)
+
+    -- If the from slot is now empty, it means that there was no item there. Simply send a query telling to update the position of the moved item
+    if (ply.Inventory[fromSlot] == nil) then
+        CityMod.Database:Query("UPDATE account_inventory SET inventory_slot = "..toSlot.." WHERE inventory_slot = "..fromSlot.." AND account_id = "..ply:AccountID())
+    else
+        -- Swap items
+
+    end
+
+    --CityMod.Database:Query("UPDATE account_inventory s1, account_inventory s2 SET s1.inventory_slot=s1.y, s1.y=s2.x WHERE s1.account_id=s2.id;")
+end
+net.Receive("MoveItem", CityMod.Player.MoveItem)
 
 function CityMod.Player:LoadInventory(ply, isNewPlayer)
     -- Create the player's inventory

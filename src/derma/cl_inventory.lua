@@ -7,7 +7,7 @@ function PANEL:Init()
 	List:SetSpaceY(6)
 	List:SetSpaceX(10)
 	
-	for i = 0, LocalPlayer().MaxInventorySize do -- Make a loop to create a bunch of panels inside of the DIconLayout
+	for i = 0, LocalPlayer().MaxInventorySize-1 do -- Make a loop to create a bunch of panels inside of the DIconLayout
 		local inventorySlot = vgui.Create("CityModInventorySlot", List)
 
 		-- Set the inventory slot's ID
