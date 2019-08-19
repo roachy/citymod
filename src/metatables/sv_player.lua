@@ -38,3 +38,7 @@ end
 function playerMeta:HasModeratorRank()
     return CityMod.Rank:IsModerator(self)
 end
+
+function playerMeta:TakeItem(itemId, modifier, amount)
+    CityMod.Player:TakeItem(self, itemId, modifier, amount)
+end

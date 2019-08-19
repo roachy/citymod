@@ -14,7 +14,7 @@ function PANEL:Init()
 		inventorySlot.Id = i
 
 		if (ply.Inventory[i] ~= nil) then
-			local itemId = ply.Inventory[i].ItemId
+			local itemId = ply.Inventory[i].Id
 			local itemModel = CityMod.Item:Get(itemId).Model
 			
 			inventorySlot.ModelPanel = vgui.Create("DModelPanel", inventorySlot)
@@ -26,7 +26,14 @@ function PANEL:Init()
 			local itemActionMenu = function()
 				local dMenu = DermaMenu()
 		
-				dMenu:AddOption("Use", function() print("Used item!") end)
+				dMenu:AddOption("Use", function()
+					local item = ply.Inventory[inventorySlot.Id]
+
+					net.Start("UseItem")
+						net.WriteUInt(inventorySlot.Id, 32)
+					net.SendToServer()
+
+				end)
 				dMenu:AddOption("Give")
 				dMenu:AddOption("Drop")
 				dMenu:AddOption("Destroy")

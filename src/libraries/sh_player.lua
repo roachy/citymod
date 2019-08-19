@@ -51,6 +51,7 @@ util.AddNetworkString("LoadPlayer")
 util.AddNetworkString("LoadInventory")
 util.AddNetworkString("NotifyPlayer")
 util.AddNetworkString("MoveItem")
+util.AddNetworkString("UseItem")
 
 function CityMod.Player.Load(len, ply)
     if (ply.Initialized) then -- Do not allow the player to initialize themself again if they have already been initialized
@@ -171,13 +172,44 @@ function CityMod.Player.MoveItem(len, ply)
         CityMod.Database:Query("UPDATE account_inventory SET inventory_slot = "..toSlot.." WHERE inventory_slot = "..fromSlot.." AND account_id = "..ply:AccountID())
     else
         -- Swap items
-        CityMod.Database:Query("UPDATE account_inventory SET inventory_slot = "..fromSlot.." WHERE account_id = "..ply:AccountID().." AND item_id = "..ply.Inventory[fromSlot].ItemId.." AND modifier = "..ply.Inventory[fromSlot].Modifier)
-        CityMod.Database:Query("UPDATE account_inventory SET inventory_slot = "..toSlot.." WHERE account_id = "..ply:AccountID().." AND item_id = "..ply.Inventory[toSlot].ItemId.." AND modifier = "..ply.Inventory[toSlot].Modifier)
+        CityMod.Database:Query("UPDATE account_inventory SET inventory_slot = "..fromSlot.." WHERE account_id = "..ply:AccountID().." AND item_id = "..ply.Inventory[fromSlot].Id.." AND modifier = "..ply.Inventory[fromSlot].Modifier)
+        CityMod.Database:Query("UPDATE account_inventory SET inventory_slot = "..toSlot.." WHERE account_id = "..ply:AccountID().." AND item_id = "..ply.Inventory[toSlot].Id.." AND modifier = "..ply.Inventory[toSlot].Modifier)
     end
 
     --CityMod.Database:Query("UPDATE account_inventory s1, account_inventory s2 SET s1.inventory_slot=s1.y, s1.y=s2.x WHERE s1.account_id=s2.id;")
 end
 net.Receive("MoveItem", CityMod.Player.MoveItem)
+
+function CityMod.Player:GiveItem(ply, itemId, modifier, amount)
+end
+
+function CityMod.Player:TakeItem(ply, itemId, modifier, amount)
+    print("Called takeitem")
+end
+
+function CityMod.Player.UseItem(len, ply)
+    local inventorySlot = net.ReadUInt(32)
+
+    -- If there is no item in that slot, return
+    if (ply.Inventory[inventorySlot] == nil) then
+        return
+    end
+
+    -- Get the item's properties
+    local item = CityMod.Item:Get(ply.Inventory[inventorySlot].Id)
+
+    -- Execute the item's function
+    item:Execute()
+
+    local itemId = ply.Inventory[inventorySlot].Id
+    local itemModifier = ply.Inventory[inventorySlot].Modifier
+
+    -- If the item should be consumed, call TakeItem
+    if (item.ConsumeOnUse) then
+        ply:TakeItem(itemId, itemModifier, item.ConsumeCount)
+    end
+end
+net.Receive("UseItem", CityMod.Player.UseItem)
 
 function CityMod.Player:LoadInventory(ply, isNewPlayer)
     -- Create the player's inventory
@@ -197,7 +229,7 @@ function CityMod.Player:LoadInventory(ply, isNewPlayer)
             end
 
             -- Set the inventory slot's item id, modifier, and amount.
-            ply.Inventory[v.inventory_slot].ItemId = v.item_id
+            ply.Inventory[v.inventory_slot].Id = v.item_id
             ply.Inventory[v.inventory_slot].Modifier = v.modifier
             ply.Inventory[v.inventory_slot].Amount = v.amount
         end

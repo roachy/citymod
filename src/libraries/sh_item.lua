@@ -12,6 +12,7 @@ CLASS_TABLE.Weight = 1
 CLASS_TABLE.Category = "None"
 CLASS_TABLE.Description = "Sample item"
 CLASS_TABLE.ConsumeOnUse = true -- In most cases, an item will be consumed on use
+CLASS_TABLE.ConsumeCount = 1
 
 local _items = {}
 local _categories = {}

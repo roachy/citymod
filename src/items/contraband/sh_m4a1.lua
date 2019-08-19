@@ -4,7 +4,7 @@ ITEM.Category = "Contraband"
 ITEM.Model = "models/props_borealis/bluebarrel001.mdl"
 
 function ITEM:Execute(ply)
-    print(self.Dab)
+    print("Item use!")
 end
 
 ITEM:Register()
