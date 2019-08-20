@@ -117,7 +117,7 @@ function CityMod:PlayerBindPress(ply,bind,pressed)
     if (bind == "gm_showspare2") then -- F4
         if (pressed) then
             if (gameMenu ~= nil) then
-                gameMenu:GetParent():Show()
+                gameMenu.Frame:Show()
             else
                 gameMenu = vgui.Create("CityModSampleMenu")
             end

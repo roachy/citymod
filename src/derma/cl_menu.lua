@@ -4,17 +4,21 @@ local PANEL = {}
 function PANEL:Init()
 
 
-	local frame = vgui.Create( "DFrame" )
-	frame:SetSize( ScrW() / 2, ScrH() / 2 )
-	frame:SetTitle("Main Menu")
-	frame:SetDraggable(false)
-	frame:Center()
-	frame:MakePopup()
+	self.Frame = vgui.Create( "DFrame" )
+	self.Frame:SetSize( ScrW() / 2, ScrH() / 2 )
+	self.Frame:SetTitle("Main Menu")
+	self.Frame:SetDraggable(false)
+	self.Frame:Center()
+	self.Frame:MakePopup()
 
 	-- Override closing
-	frame.btnClose.DoClick = function(button) self:GetParent():Hide() end
+	self.Frame.btnClose.DoClick = function(button) self.Frame:Hide() end
 
-	local sheet = vgui.Create("DPropertySheet", frame)
+	-- Hide useless buttons
+	self.Frame.btnMaxim:SetVisible(false)
+	self.Frame.btnMinim:SetVisible(false)
+
+	local sheet = vgui.Create("DPropertySheet", self.Frame)
 	sheet:Dock( FILL )
 
 	--local panel1 = vgui.Create("DPanel", sheet) -- Use /news command instead
@@ -32,7 +36,7 @@ function PANEL:Init()
 	SheetItem2:SetPos(0,50)
 	SheetItem2:SetSize(100,25)
 	SheetItem2.DoClick = function()
-		print("called")
+		print("Called Set Name")
 	end
 
 	
