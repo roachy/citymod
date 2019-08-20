@@ -1,7 +1,19 @@
 {
-	"folders": [
+	"folders": 
+	[
 		{
 			"path": "."
 		}
-	]
+	],
+	"settings": 
+	{
+		"files.exclude": 
+		{
+			"modules": true, // Exclude modules folder
+			"install.bat" : true,
+			".travis.yml" : true,
+			".luacheckrc" : true,
+			".gitignore" : true,
+		}
+	}
 }
