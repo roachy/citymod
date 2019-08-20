@@ -230,6 +230,7 @@ function CityMod.Player:GiveItem(ply, itemId, modifier, amount, force)
     ply.Inventory[freeSlot].Id = itemId
     ply.Inventory[freeSlot].Modifier = modifier
     ply.Inventory[freeSlot].Amount = amount
+    return true
 end
 
 function CityMod.Player:TakeItem(ply, itemId, modifier, amount, force)
@@ -261,6 +262,9 @@ function CityMod.Player:TakeItem(ply, itemId, modifier, amount, force)
             end
         end
     end
+
+    -- No item with that id and modifier was found, simply return.
+    return false
 end
 
 function CityMod.Player.UseItem(len, ply)
@@ -292,8 +296,7 @@ function CityMod.Player.UseItem(len, ply)
         end
     end
 
-
-    -- Execute the item's function, passing boththe player and item's modifier
+    -- Execute the item's function, passing both the player and item's modifier
     item:Execute(ply, itemModifier)
 end
 net.Receive("UseItem", CityMod.Player.UseItem)
