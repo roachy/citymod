@@ -85,6 +85,7 @@ hook.Add("HUDShouldDraw", "HideDefaultHud", function(name)
     end
 end)
 
+local gameMenu = nil
 -- Called when a player presses a bind on the server-side
 function CityMod:PlayerBindPress(ply,bind,pressed)
 
@@ -94,7 +95,7 @@ function CityMod:PlayerBindPress(ply,bind,pressed)
 
     if (bind == "gm_showhelp") then -- F1
         if (pressed) then
-            RunString(file.Read("gamemodes/citymod/menu.lua", true))
+            --RunString(file.Read("gamemodes/citymod/gameMenu.lua", true))
         end
         return true
     end
@@ -115,7 +116,11 @@ function CityMod:PlayerBindPress(ply,bind,pressed)
 
     if (bind == "gm_showspare2") then -- F4
         if (pressed) then
-            local panel = vgui.Create("CityModSampleMenu")
+            if (gameMenu ~= nil) then
+                gameMenu:GetParent():Show()
+            else
+                gameMenu = vgui.Create("CityModSampleMenu")
+            end
         end
         return true
     end

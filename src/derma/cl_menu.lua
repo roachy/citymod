@@ -11,6 +11,9 @@ function PANEL:Init()
 	frame:Center()
 	frame:MakePopup()
 
+	-- Override closing
+	frame.btnClose.DoClick = function(button) self:GetParent():Hide() end
+
 	local sheet = vgui.Create("DPropertySheet", frame)
 	sheet:Dock( FILL )
 
