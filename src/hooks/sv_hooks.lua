@@ -7,9 +7,9 @@ function CityMod:PlayerSpawn(ply)
         return
     end
 
-    CityMod:PlayerLoadout(ply)
     ply:SetModel("models/player/breen.mdl")
-    ply:SetupHands()
+    -- Call this to give the player their loadout
+    return self.BaseClass.PlayerSpawn(self, ply)
 end
 
 function CityMod:PlayerLoadout(ply)

@@ -9,8 +9,11 @@ function CityMod:PlayerNoClip(lpl)
     return LocalPlayer().Rank <= CityMod.Rank.Moderator
 end
 
-function CityMod:HUDShouldDraw(hud)
-    return true
+local hud = {["CHudHealth"] = true, ["CHudBattery"] = true, ["CHudAmmo"] = true, ["CHudSecondaryAmmo"] = true}
+function GM:HUDShouldDraw(name)
+   if hud[name] then return false end
+
+   return true
 end
 
 hook.Add("HUDPaint", "CityModHUD", function()
@@ -73,15 +76,6 @@ hook.Add("HUDPaint", "CityModHUD", function()
             if (client:GetAmmoCount(client:GetActiveWeapon():GetSecondaryAmmoType()) > 0) then
                 draw.SimpleText("Secondary: " .. client:GetAmmoCount(client:GetActiveWeapon():GetSecondaryAmmoType()), "DermaDefaultBold", 260, ScrH() - 25, Color(255, 255, 255, 255), 0, 0)
             end
-        end
-    end
-end)
-
--- Hide default interface
-hook.Add("HUDShouldDraw", "HideDefaultHud", function(name)
-    for k, v in pairs({"CHudHealth", "CHudBattery", "CHudAmmo", "CHudSecondaryAmmo"}) do
-        if name == v then
-            return false
         end
     end
 end)
