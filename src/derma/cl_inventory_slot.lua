@@ -31,6 +31,7 @@ function PANEL:Init()
 
                 -- Grab the current slot's model
                 local currentSlot = receiver:GetChild(0)
+                print(currentSlot)
                 local currentSlotModel = currentSlot:GetModel()
 
                 -- Swap the two slots
@@ -46,13 +47,36 @@ function PANEL:Init()
             modelPanel:SetModel(previousSlotModel)
             modelPanel:Droppable("ItemSlot")
 
+            -- Create item count
+			local DLabel = vgui.Create("DLabel", modelPanel)
+			DLabel:SetPos(65,20)
+			DLabel:SetText(ply.Inventory[previousItemSlotId].Amount)
+			DLabel:SetTextColor(Color(0, 0, 0))
+
             local itemActionMenu = function()
                 local dMenu = DermaMenu()
         
                 dMenu:AddOption("Use", function()
+                    
+					-- Tell server that we want to use the item in the given slot
 					net.Start("UseItem")
 						net.WriteUInt(self.Id, 32)
 					net.SendToServer()
+
+					-- Wait for callback from server about the item
+                    net.Receive("UseItem", function()
+                        local item = ply.Inventory[self.Id]
+                        local itemProperties = CityMod.Item:Get(item.Id)
+
+						 -- Sets the new item amount. It will deduct the consumecount for now. It is very unlikely there will be an item, that upon using it, will increase its item count
+						item.Amount = item.Amount-itemProperties.ConsumeCount
+
+						if (item.Amount == 0) then
+							modelPanel:Remove()
+						end
+
+						DLabel:SetText(ply.Inventory[self.Id].Amount)
+					end)
 
 				end)
                 dMenu:AddOption("Give")

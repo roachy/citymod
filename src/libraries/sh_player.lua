@@ -225,11 +225,12 @@ function CityMod.Player:GiveItem(ply, itemId, modifier, amount, force)
         return false
     end
 
-    -- Since the item could not be stacked, and a free slot exists, create the item in the new slot
+    -- Since the item could not be stacked, and a free slot exists, create the item in the new slot, and insert the item in the database
     ply.Inventory[freeSlot] = {}
     ply.Inventory[freeSlot].Id = itemId
     ply.Inventory[freeSlot].Modifier = modifier
     ply.Inventory[freeSlot].Amount = amount
+    CityMod.Database:Query("INSERT INTO account_inventory(account_id,inventory_slot,item_id,modifier,amount) VALUES ("..ply:AccountID()..","..freeSlot..","..itemId..","..modifier..","..amount..")")
     return true
 end
 
@@ -257,7 +258,15 @@ function CityMod.Player:TakeItem(ply, itemId, modifier, amount, force)
 
                 -- All checks passed, modify the item by the new count and save to database.
                 item.Amount = item.Amount-amount
-                CityMod.Database:Query("UPDATE account_inventory SET amount = "..item.Amount.." WHERE account_id = "..ply:AccountID().." AND item_id = "..item.Id.." AND modifier = "..item.Modifier)
+
+                -- If the item's count is 0, delete its entry in the database
+                if (item.Amount == 0) then
+                    CityMod.Database:Query("DELETE FROM account_inventory WHERE account_id = "..ply:AccountID().." AND item_id = "..item.Id.." AND modifier = "..item.Modifier)
+                else
+                    -- Else, update the item's amount
+                    CityMod.Database:Query("UPDATE account_inventory SET amount = "..item.Amount.." WHERE account_id = "..ply:AccountID().." AND item_id = "..item.Id.." AND modifier = "..item.Modifier)
+                end
+
                 return true
             end
         end
@@ -291,13 +300,17 @@ function CityMod.Player.UseItem(len, ply)
         local itemId = ply.Inventory[inventorySlot].Id
 
         -- Take the item from their inventory
-        if (not ply:GiveItem(itemId, itemModifier, item.ConsumeCount)) then
+        if (not ply:TakeItem(itemId, itemModifier, item.ConsumeCount)) then
             return
         end
     end
 
     -- Execute the item's function, passing both the player and item's modifier
     item:Execute(ply, itemModifier)
+
+    -- Send callback to the player that the item was used
+    net.Start("UseItem")
+    net.Send(ply)
 end
 net.Receive("UseItem", CityMod.Player.UseItem)
 
