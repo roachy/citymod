@@ -2,20 +2,20 @@ CityMod.Library = {}
 
 local _libraries = {}
 
-function CityMod.Library:New(name)
-    if (name == nil or name == "") then
-        error("Unknown library name, please specify a name to this library in the initializer parameter",2)
+function CityMod.Library:New(libraryName)
+    if (libraryName == nil or libraryName == "") then
+        error("Unknown library libraryName, please specify a libraryName to this library in the initializer parameter", 2)
         return
     end
 
-    if (_libraries[name] ~= nil) then
-        error("Library with name "..name.." already exists.",2)
+    if (_libraries[libraryName] ~= nil) then
+        error("Library with libraryName "..libraryName.." already exists.", 2)
     end
 
 
     local o = {}
-    _libraries[name] = o
+    _libraries[libraryName] = o
 
-    print("Registered library: "..name)    
+    print("Registered library: "..libraryName)    
     return o
 end

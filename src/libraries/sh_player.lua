@@ -53,6 +53,7 @@ util.AddNetworkString("NotifyPlayer")
 util.AddNetworkString("MoveItem")
 util.AddNetworkString("UseItem")
 
+-- Load a player's data when they have been initialized, and told the server so
 function CityMod.Player.Load(len, ply)
     if (ply.Initialized) then -- Do not allow the player to initialize themself again if they have already been initialized
         return
@@ -67,12 +68,13 @@ function CityMod.Player.Load(len, ply)
 
         local isNewPlayer = false
 
-        -- If the player does not exist in the database, create them with default stats.
+        -- If the player does not exist in the database, set the newPlayer bool, along with making a placeholder result.
         if (#result == 0) then
             isNewPlayer = true
             result[1] = {}
         end
             
+        -- Set the player's data
         ply.IngameName = result[1].name or ply:Name()
         ply.Rank = result[1].staff_rank or CityMod.Config["Default Rank"]
         ply.Money = result[1].money or CityMod.Config["Default Money"]
@@ -80,7 +82,7 @@ function CityMod.Player.Load(len, ply)
         ply.MaxInventoryWeight = result[1].max_inventory_weight or CityMod.Config["Default Maximum Inventory Weight"]
 
         -- Save the (potentially) new player's data, along with showing message of having been initialized now.
-        if (isNewPlayer) then -- Do more stuff (Tutorial things maybe?)
+        if (isNewPlayer) then
             ply:LogIP("has been initialized for the first time")
 
             -- Save their data immediately
@@ -93,8 +95,7 @@ function CityMod.Player.Load(len, ply)
             stmt:setNumber(6, ply.MaxInventorySize)
             stmt:setNumber(7, ply.MaxInventoryWeight)
             stmt:start()
-
-        else
+        else 
             ply:LogIP("has been initialized")
         end
 
@@ -131,6 +132,7 @@ function CityMod.Player.Load(len, ply)
 end
 net.Receive("LoadPlayer", CityMod.Player.Load)
 
+-- Move an item in a player's inventory between two inventory slots
 function CityMod.Player.MoveItem(len, ply)
 
     -- Do not bother with uninitialized players
@@ -180,11 +182,85 @@ function CityMod.Player.MoveItem(len, ply)
 end
 net.Receive("MoveItem", CityMod.Player.MoveItem)
 
-function CityMod.Player:GiveItem(ply, itemId, modifier, amount)
+function CityMod.Player:GiveItem(ply, itemId, modifier, amount, force)
+
+    -- Negative numbers should not be used here
+    if (amount <= 0) then
+        error("Negative numbers and zero should NOT be used in TakeItem", 2)
+    end
+    
+    -- TODO: Check against the item's weight here. This can however be bypassed with the "force" parameter
+    -- if (ply.Weight...)
+    --end
+    
+    -- Free slot variable for potentially storing an item
+    local freeSlot = nil
+
+    -- Iterate over the player's inventory to see whether an already existing item can be stacked
+    for i = 0, ply.MaxInventorySize-1 do -- 0-indexed
+
+        -- If a free slot was found, and the freeslot variable was not already set, set it to the current i
+        if (ply.Inventory[i] == nil and freeSlot == nil) then
+            freeSlot = i
+        end
+
+        -- Check whether an item exists in the given inventory slot
+        if (ply.Inventory[i] ~= nil) then
+            local item = ply.Inventory[i]
+
+            -- Since the item exists, check against the item's id and modifier
+            if (item.Id == itemId and item.Modifier == modifier) then
+
+
+                -- All checks passed, modify the item by the new count and save to database.
+                item.Amount = item.Amount+amount
+                CityMod.Database:Query("UPDATE account_inventory SET amount = "..item.Amount.." WHERE account_id = "..ply:AccountID().." AND item_id = "..item.Id.." AND modifier = "..item.Modifier)
+                return true
+            end
+        end
+    end
+
+    -- The player does not have space in their inventory
+    if (not freeSlot) then
+        return false
+    end
+
+    -- Since the item could not be stacked, and a free slot exists, create the item in the new slot
+    ply.Inventory[freeSlot] = {}
+    ply.Inventory[freeSlot].Id = itemId
+    ply.Inventory[freeSlot].Modifier = modifier
+    ply.Inventory[freeSlot].Amount = amount
 end
 
-function CityMod.Player:TakeItem(ply, itemId, modifier, amount)
-    print("Called takeitem")
+function CityMod.Player:TakeItem(ply, itemId, modifier, amount, force)
+
+    -- Negative numbers should not be used here
+    if (amount <= 0) then
+        error("Negative numbers and zero should NOT be used in TakeItem", 2)
+    end
+
+    -- Iterate over the player's inventory
+    for i = 0, ply.MaxInventorySize-1 do -- 0-indexed
+
+        -- Check whether an item exists in the given inventory slot
+        if (ply.Inventory[i] ~= nil) then
+            local item = ply.Inventory[i]
+
+            -- Since the item exists, check against the item's id and modifier
+            if (item.Id == itemId and item.Modifier == modifier) then
+
+                -- The right item is now found. Test whether the player at least has the item's amount
+                if (amount > item.Amount and not force) then
+                    return false -- Return as the player does not have the amount requested to be taken.
+                end
+
+                -- All checks passed, modify the item by the new count and save to database.
+                item.Amount = item.Amount-amount
+                CityMod.Database:Query("UPDATE account_inventory SET amount = "..item.Amount.." WHERE account_id = "..ply:AccountID().." AND item_id = "..item.Id.." AND modifier = "..item.Modifier)
+                return true
+            end
+        end
+    end
 end
 
 function CityMod.Player.UseItem(len, ply)
@@ -198,16 +274,27 @@ function CityMod.Player.UseItem(len, ply)
     -- Get the item's properties
     local item = CityMod.Item:Get(ply.Inventory[inventorySlot].Id)
 
-    -- Execute the item's function
-    item:Execute()
-
-    local itemId = ply.Inventory[inventorySlot].Id
     local itemModifier = ply.Inventory[inventorySlot].Modifier
 
-    -- If the item should be consumed, call TakeItem
+    -- Check whether the item should be consumed
     if (item.ConsumeOnUse) then
-        ply:TakeItem(itemId, itemModifier, item.ConsumeCount)
+        
+        -- If the amount to consume is greater than what the player possesses, return as they cannot do this.
+        if (item.ConsumeCount > ply.Inventory[inventorySlot].Amount) then
+            return
+        end
+
+        local itemId = ply.Inventory[inventorySlot].Id
+
+        -- Take the item from their inventory
+        if (not ply:GiveItem(itemId, itemModifier, item.ConsumeCount)) then
+            return
+        end
     end
+
+
+    -- Execute the item's function, passing boththe player and item's modifier
+    item:Execute(ply, itemModifier)
 end
 net.Receive("UseItem", CityMod.Player.UseItem)
 
@@ -228,7 +315,7 @@ function CityMod.Player:LoadInventory(ply, isNewPlayer)
                 ply.Inventory[v.inventory_slot] = {}
             end
 
-            -- Set the inventory slot's item id, modifier, and amount.
+            -- Set the inventory slot's item id, modifier, and amount server-side.
             ply.Inventory[v.inventory_slot].Id = v.item_id
             ply.Inventory[v.inventory_slot].Modifier = v.modifier
             ply.Inventory[v.inventory_slot].Amount = v.amount

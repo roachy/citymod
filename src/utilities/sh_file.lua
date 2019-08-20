@@ -1,12 +1,12 @@
 CityMod.File = {}
 
 function CityMod.File:Include(fileName)
-    local isShared = (string.find(fileName, "sh_"))
-    local isClient = (string.find(fileName, "cl_"))
-    local isServer = (string.find(fileName, "sv_"))
+    local isShared = string.find(fileName, "sh_")
+    local isClient = string.find(fileName, "cl_")
+    local isServer = string.find(fileName, "sv_")
 
     if (isServer and not SERVER) then
-        error("Serverside file "..fileName.." was attempted to be included on client",2)
+        error("Serverside file "..fileName.." was attempted to be included on client", 2)
         return
     end
 

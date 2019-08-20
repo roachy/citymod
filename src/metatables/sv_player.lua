@@ -39,6 +39,12 @@ function playerMeta:HasModeratorRank()
     return CityMod.Rank:IsModerator(self)
 end
 
+-- Give a player an item
+function playerMeta:GiveItem(itemId, modifier, amount)
+    return CityMod.Player:GiveItem(self, itemId, modifier, amount)
+end
+
+-- Take an item from a player
 function playerMeta:TakeItem(itemId, modifier, amount)
-    CityMod.Player:TakeItem(self, itemId, modifier, amount)
+    return CityMod.Player:TakeItem(self, itemId, modifier, amount)
 end
