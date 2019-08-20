@@ -49,7 +49,12 @@ function PANEL:Init()
             local itemActionMenu = function()
                 local dMenu = DermaMenu()
         
-                dMenu:AddOption("Use", function() print("Used item!") end)
+                dMenu:AddOption("Use", function()
+					net.Start("UseItem")
+						net.WriteUInt(self.Id, 32)
+					net.SendToServer()
+
+				end)
                 dMenu:AddOption("Give")
                 dMenu:AddOption("Drop")
                 dMenu:AddOption("Destroy")

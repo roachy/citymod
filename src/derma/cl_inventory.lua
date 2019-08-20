@@ -27,8 +27,6 @@ function PANEL:Init()
 				local dMenu = DermaMenu()
 		
 				dMenu:AddOption("Use", function()
-					local item = ply.Inventory[inventorySlot.Id]
-
 					net.Start("UseItem")
 						net.WriteUInt(inventorySlot.Id, 32)
 					net.SendToServer()
