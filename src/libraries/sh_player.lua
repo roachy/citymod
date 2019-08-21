@@ -192,6 +192,22 @@ function CityMod.Player.MoveItem(len, ply)
 end
 net.Receive("MoveItem", CityMod.Player.MoveItem)
 
+-- Create an item at a designated slot
+function CityMod.Player:CreateItemInSlot(ply, inventorySlot, itemId, modifier, amount)
+    -- Initialize the inventory slot's table
+    ply.Inventory[inventorySlot] = {}
+
+    -- Set the properties of the item (item id, modifier, amount)
+    ply.Inventory[inventorySlot].Id = itemId
+    ply.Inventory[inventorySlot].Modifier = modifier
+    ply.Inventory[inventorySlot].Amount = amount
+
+    -- Store the newly created item in the database
+    CityMod.Database:Query("INSERT INTO account_inventory(account_id,inventory_slot,item_id,modifier,amount) VALUES ("..ply:AccountID()..","..inventorySlot..","..itemId..","..modifier..","..amount..")")
+
+    PrintTable(ply.Inventory)
+end
+
 function CityMod.Player:GiveItem(ply, itemId, modifier, amount, force)
 
     -- Negative numbers should not be used here
@@ -230,17 +246,13 @@ function CityMod.Player:GiveItem(ply, itemId, modifier, amount, force)
         end
     end
 
-    -- The player does not have space in their inventory
+    -- The player does not have free space in their inventory
     if (not freeSlot) then
         return false
     end
 
-    -- Since the item could not be stacked, and a free slot exists, create the item in the new slot, and insert the item in the database
-    ply.Inventory[freeSlot] = {}
-    ply.Inventory[freeSlot].Id = itemId
-    ply.Inventory[freeSlot].Modifier = modifier
-    ply.Inventory[freeSlot].Amount = amount
-    CityMod.Database:Query("INSERT INTO account_inventory(account_id,inventory_slot,item_id,modifier,amount) VALUES ("..ply:AccountID()..","..freeSlot..","..itemId..","..modifier..","..amount..")")
+    -- Since the item could not be stacked, and a free slot exists, create the item
+    self:CreateItemInSlot(ply, freeSlot, itemId, modifier, amount)
     return true
 end
 
@@ -273,7 +285,7 @@ function CityMod.Player:TakeItem(ply, itemId, modifier, amount, force)
                 if (item.Amount == 0) then
                     CityMod.Database:Query("DELETE FROM account_inventory WHERE account_id = "..ply:AccountID().." AND item_id = "..item.Id.." AND modifier = "..item.Modifier)
                 else
-                    -- Else, update the item's amount
+                    -- Else, update the item's amount to the new one
                     CityMod.Database:Query("UPDATE account_inventory SET amount = "..item.Amount.." WHERE account_id = "..ply:AccountID().." AND item_id = "..item.Id.." AND modifier = "..item.Modifier)
                 end
 
@@ -317,6 +329,9 @@ function CityMod.Player.UseItem(len, ply)
 
     -- Execute the item's function, passing both the player and item's modifier
     item:Execute(ply, itemModifier)
+
+    -- Log the usage of the item
+    ply:LogIP("used item with name: "..item.Name)
 
     -- Send callback to the player that the item was used
     net.Start("UseItem")

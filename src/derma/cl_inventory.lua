@@ -1,7 +1,6 @@
 local PANEL = {}
 
 function PANEL:Init()
-
 	self.List = vgui.Create("DIconLayout", self)
 
 	self.List:Dock(FILL)
