@@ -65,37 +65,37 @@ function PANEL:CreateItem(panel, index)
 	DLabel:SetText(ply.Inventory[index].Amount)
 	DLabel:SetTextColor(Color(0, 0, 0))
 
+	local function CreateActionMenu()
+		local dMenu = DermaMenu()
+			
+		dMenu:AddOption("Use", function()
+			-- Tell server that we want to use the item in the given slot
+			net.Start("UseItem")
+				net.WriteUInt(panel[index].Id, 32)
+			net.SendToServer()
+	
+			-- Wait for callback from server about the item
+			net.Receive("UseItem", function()
+				 -- Sets the new item amount. It will deduct the consumecount for now. It is very unlikely there will be an item, that upon using it, will increase its item count
+				item.Amount = item.Amount-itemProperties.ConsumeCount
+	
+				if (item.Amount == 0) then
+					panel[index].ModelPanel:Remove()
+				end
+	
+				DLabel:SetText(ply.Inventory[index].Amount)
+			end)
+		end)
+		dMenu:AddOption("Give")
+		dMenu:AddOption("Drop")
+		dMenu:AddOption("Destroy")
+	
+		dMenu:Open()
+	end
+
 	-- Set action menu
 	panel[index].ModelPanel.DoClick = CreateActionMenu
 	panel[index].ModelPanel.DoRightClick = CreateActionMenu
-end
-
-local function CreateActionMenu()
-	local dMenu = DermaMenu()
-		
-	dMenu:AddOption("Use", function()
-		-- Tell server that we want to use the item in the given slot
-		net.Start("UseItem")
-			net.WriteUInt(self.List.InventorySlots[i].Id, 32)
-		net.SendToServer()
-
-		-- Wait for callback from server about the item
-		net.Receive("UseItem", function()
-			 -- Sets the new item amount. It will deduct the consumecount for now. It is very unlikely there will be an item, that upon using it, will increase its item count
-			item.Amount = item.Amount-itemProperties.ConsumeCount
-
-			if (item.Amount == 0) then
-				self.List.InventorySlots[i].ModelPanel:Remove()
-			end
-
-			DLabel:SetText(ply.Inventory[i].Amount)
-		end)
-	end)
-	dMenu:AddOption("Give")
-	dMenu:AddOption("Drop")
-	dMenu:AddOption("Destroy")
-
-	dMenu:Open()
 end
 
 vgui.Register("CityModInventory", PANEL, "DScrollPanel")
