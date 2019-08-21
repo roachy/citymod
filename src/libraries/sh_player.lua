@@ -40,6 +40,9 @@ function CityMod.Player.UpdateInventory()
     LocalPlayer().Inventory[inventorySlot].Id = itemId
     LocalPlayer().Inventory[inventorySlot].Modifier = modifier
     LocalPlayer().Inventory[inventorySlot].Amount = amount
+
+    -- Return the inventory slot so the inventory panel can use it
+    return inventorySlot
 end
 net.Receive("UpdateInventory", CityMod.Player.UpdateInventory)
 

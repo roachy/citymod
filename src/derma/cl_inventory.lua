@@ -26,18 +26,10 @@ function PANEL:Init()
 
 	-- Add handler for when we should update our inventory (such as picking up an item, destroying an item, dropping an item etc.)
 	net.Receive("UpdateInventory", function()
-		-- Store variables
-		local inventorySlot = net.ReadUInt(32)
-		local itemId = net.ReadUInt(16)
-		local modifier = net.ReadInt(32)
-		local amount = net.ReadUInt(16)
+		-- Call the UpdateInventory to set the item in its slot etc. It returns the inventory slot.
+		local inventorySlot = CityMod.Player.UpdateInventory()		
 
-		-- Set the item's properties
-		LocalPlayer().Inventory[inventorySlot] = {}
-		LocalPlayer().Inventory[inventorySlot].Id = itemId
-		LocalPlayer().Inventory[inventorySlot].Modifier = modifier
-		LocalPlayer().Inventory[inventorySlot].Amount = amount
-		
+		-- Create the item
 		self:CreateItem(self.List.InventorySlots, inventorySlot)
 	end)
 end
