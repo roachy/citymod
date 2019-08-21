@@ -24,12 +24,8 @@ if (amount > ply.Money) then
     return
 end
 
-ply.Money = ply.Money-amount -- All checks passed, set money serverside
-ply:Notify("You dropped "..amount.."$")
-
-local packet = CityMod.ServerPacket.UpdatePlayerMoney -- Let the client know how much they have
-packet.Amount = -amount
-ply:SendPacket(packet)
+ply:TakeMoney(amount) -- All checks passed, set money serverside
+ply:NotifyGeneric("You dropped "..amount.."$")
 
 end
 CMD:Register()

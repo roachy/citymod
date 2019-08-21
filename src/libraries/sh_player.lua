@@ -45,13 +45,23 @@ function CityMod.Player.Notify()
 end
 net.Receive("NotifyPlayer", CityMod.Player.Notify)
 
+-- Update a player's money
+function CityMod.Player.UpdateMoney()
+    local amount = net.ReadUInt(32)
+
+    ply.Money = amount
+end
+net.Receive("UpdateMoney", CityMod.Player.UpdateMoney)
+
 else -- SERVER
 
+-- Create network messages
 util.AddNetworkString("LoadPlayer")
 util.AddNetworkString("LoadInventory")
 util.AddNetworkString("NotifyPlayer")
 util.AddNetworkString("MoveItem")
 util.AddNetworkString("UseItem")
+util.AddNetworkString("UpdateMoney")
 
 -- Load a player's data when they have been initialized, and told the server so
 function CityMod.Player.Load(len, ply)
@@ -68,7 +78,7 @@ function CityMod.Player.Load(len, ply)
 
         local isNewPlayer = false
 
-        -- If the player does not exist in the database, set the newPlayer bool, along with making a placeholder result.
+        -- If the player does not exist in the database, set the newPlayer bool, along with making a placeholder result table.
         if (#result == 0) then
             isNewPlayer = true
             result[1] = {}
@@ -358,6 +368,44 @@ function CityMod.Player:Notify(ply, text, type, length)
     net.WriteUInt(length,8)
     net.Send(ply)
 end
+
+function CityMod.Player:GiveMoney(ply, amount)
+
+    -- Check if money is negative or zero
+    if (amount <= 0) then
+        error("You cannot give negative or zero money to a player", 2)
+    end
+
+    -- Update the player's money
+    ply.Money = ply.Money+amount
+
+    -- Call UpdateMoney
+    self:UpdateMoney(ply)
+end
+
+function CityMod.Player:TakeMoney(ply, amount)
+
+    -- Check if money is negative or zero
+    if (amount <= 0) then
+        error("You cannot take negative or zero money from a player", 2)
+    end
+
+    -- Update the player's money
+    ply.Money = ply.Money-amount
+
+    -- Call UpdateMoney
+    self:UpdateMoney(ply)
+end
+
+-- Update the player's money client-side
+function CityMod.Player:UpdateMoney(ply)
+    net.Start("UpdateMoney")
+    net.WriteUInt(ply.Money, 32)
+    net.Send(ply)
+end
+
+
+
 
 end -- SHARED
 

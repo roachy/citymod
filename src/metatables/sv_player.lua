@@ -48,3 +48,13 @@ end
 function playerMeta:TakeItem(itemId, modifier, amount)
     return CityMod.Player:TakeItem(self, itemId, modifier, amount)
 end
+
+-- Give a player money
+function playerMeta:GiveMoney(amount)
+    return CityMod.Player:GiveMoney(self, amount)
+end
+
+-- Take money from a player
+function playerMeta:TakeMoney(amount)
+    return CityMod.Player:TakeMoney(self, amount)
+end
