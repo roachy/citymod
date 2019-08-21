@@ -27,6 +27,22 @@ function CityMod.Player.Load()
 end
 net.Receive("LoadPlayer", CityMod.Player.Load)
 
+-- Update the player's inventory. Please note that this method gets overriden in the inventory once the inventory has been initialized.
+function CityMod.Player.UpdateInventory()
+    -- Store variables
+    local inventorySlot = net.ReadUInt(32)
+    local itemId = net.ReadUInt(16)
+    local modifier = net.ReadInt(32)
+    local amount = net.ReadUInt(16)
+
+    -- Set the item's properties
+    LocalPlayer().Inventory[inventorySlot] = {}
+    LocalPlayer().Inventory[inventorySlot].Id = itemId
+    LocalPlayer().Inventory[inventorySlot].Modifier = modifier
+    LocalPlayer().Inventory[inventorySlot].Amount = amount
+end
+net.Receive("UpdateInventory", CityMod.Player.UpdateInventory)
+
 function CityMod.Player.LoadInventory()
     -- Set our inventory to the one we received from the server
     LocalPlayer().Inventory = net.ReadTable()

@@ -65,7 +65,7 @@ function PANEL:CreateItem(panel, index)
 	DLabel:SetText(ply.Inventory[index].Amount)
 	DLabel:SetTextColor(Color(0, 0, 0))
 
-	local function CreateActionMenu()
+	local function ActionMenu()
 		local dMenu = DermaMenu()
 			
 		dMenu:AddOption("Use", function()
@@ -94,8 +94,8 @@ function PANEL:CreateItem(panel, index)
 	end
 
 	-- Set action menu
-	panel[index].ModelPanel.DoClick = CreateActionMenu
-	panel[index].ModelPanel.DoRightClick = CreateActionMenu
+	panel[index].ModelPanel.DoClick = ActionMenu
+	panel[index].ModelPanel.DoRightClick = ActionMenu
 end
 
 vgui.Register("CityModInventory", PANEL, "DScrollPanel")

@@ -26,6 +26,5 @@ end
 
 ply:TakeMoney(amount) -- All checks passed, set money serverside
 ply:NotifyGeneric("You dropped "..amount.."$")
-
 end
 CMD:Register()
