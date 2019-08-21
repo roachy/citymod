@@ -62,6 +62,7 @@ util.AddNetworkString("NotifyPlayer")
 util.AddNetworkString("MoveItem")
 util.AddNetworkString("UseItem")
 util.AddNetworkString("UpdateMoney")
+util.AddNetworkString("UpdateInventory")
 
 -- Load a player's data when they have been initialized, and told the server so
 function CityMod.Player.Load(len, ply)
@@ -205,7 +206,18 @@ function CityMod.Player:CreateItemInSlot(ply, inventorySlot, itemId, modifier, a
     -- Store the newly created item in the database
     CityMod.Database:Query("INSERT INTO account_inventory(account_id,inventory_slot,item_id,modifier,amount) VALUES ("..ply:AccountID()..","..inventorySlot..","..itemId..","..modifier..","..amount..")")
 
-    PrintTable(ply.Inventory)
+    -- Update the player's inventory client-side
+    self:UpdateInventory(ply, inventorySlot, itemId, modifier, amount)
+end
+
+--  Update the player's inventory with the specified item at the position
+function CityMod.Player:UpdateInventory(ply, inventorySlot, itemId, modifier, amount)
+    net.Start("UpdateInventory")
+    net.WriteUInt(inventorySlot, 32)
+    net.WriteUInt(itemId, 16)
+    net.WriteInt(modifier, 32)
+    net.WriteUInt(amount, 16)
+    net.Send(ply)
 end
 
 function CityMod.Player:GiveItem(ply, itemId, modifier, amount, force)
@@ -241,6 +253,9 @@ function CityMod.Player:GiveItem(ply, itemId, modifier, amount, force)
                 -- All checks passed, modify the item by the new count and save to database.
                 item.Amount = item.Amount+amount
                 CityMod.Database:Query("UPDATE account_inventory SET amount = "..item.Amount.." WHERE account_id = "..ply:AccountID().." AND item_id = "..item.Id.." AND modifier = "..item.Modifier)
+                
+                -- Update the player's inventory with the new item in slot i
+                self:UpdateInventory(ply, i, item.Id, item.Modifier, item.Amount)
                 return true
             end
         end
