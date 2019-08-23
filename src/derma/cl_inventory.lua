@@ -40,22 +40,24 @@ function PANEL:CreateItem(panel, index)
 
 	local itemProperties = CityMod.Item:Get(itemId)
 
+	local modelPanel = panel[index].ModelPanel
+
 	-- Remove the panel if it exists already
-	if (panel[index].ModelPanel ~= nil) then
-		panel[index].ModelPanel:Remove()
+	if (modelPanel ~= nil) then
+		modelPanel:Remove()
 	end
 	
-	panel[index].ModelPanel = vgui.Create("DModelPanel", panel[index])
-	panel[index].ModelPanel:SetSize(80,40)
-	panel[index].ModelPanel:Droppable("ItemSlot")
+	modelPanel = vgui.Create("DModelPanel", panel[index])
+	modelPanel:SetSize(80,40)
+	modelPanel:Droppable("ItemSlot")
 
-	panel[index].ModelPanel:SetModel(itemProperties.Model)
+	modelPanel:SetModel(itemProperties.Model)
 
 	-- Create item count
-	local DLabel = vgui.Create("DLabel", panel[index].ModelPanel)
+	local DLabel = vgui.Create("DLabel", modelPanel)
 	DLabel:SetPos(65,20)
 	DLabel:SetText(ply.Inventory[index].Amount)
-	DLabel:SetTextColor(Color(0, 0, 0))
+	DLabel:SetDark(1)
 
 	local function ActionMenu()
 		local dMenu = DermaMenu()
@@ -72,7 +74,7 @@ function PANEL:CreateItem(panel, index)
 				item.Amount = item.Amount-itemProperties.ConsumeCount
 	
 				if (item.Amount == 0) then
-					panel[index].ModelPanel:Remove()
+					modelPanel:Remove()
 				end
 	
 				DLabel:SetText(ply.Inventory[index].Amount)
@@ -86,8 +88,69 @@ function PANEL:CreateItem(panel, index)
 	end
 
 	-- Set action menu
-	panel[index].ModelPanel.DoClick = ActionMenu
-	panel[index].ModelPanel.DoRightClick = ActionMenu
+	modelPanel.DoClick = ActionMenu
+	modelPanel.DoRightClick = ActionMenu
+
+	-- Create panel that appears when you hover over the item
+	local itemDescription = nil
+	function modelPanel:OnCursorEntered()
+		itemDescription = vgui.Create("DPanel")
+		itemDescription:SetSize(300, 200)
+
+		-- Get the item's properties
+		local itemProperties = CityMod.Item:Get(item.Id)
+
+		-- Set the item's name
+		local itemName = vgui.Create( "DLabel", itemDescription )
+		itemName:SetPos( 10, 10 )
+
+		local itemNameText = nil
+		if (type(itemProperties.Name) == "function") then
+			itemNameText = itemProperties.Name(item.Modifier)
+		else
+			itemNameText = itemProperties.Name
+		end
+
+		itemName:SetText(itemNameText)
+		itemName:SizeToContents()
+		itemName:SetDark(1)
+
+		-- Set the item's description
+		local itemDescriptionText = nil
+		if (type(itemProperties.Description) == "function") then
+			itemDescriptionText = itemProperties.Description(item.Modifier)
+		else
+			itemDescriptionText = itemProperties.Description
+		end
+
+		local itemDescriptionLabel = vgui.Create( "DLabel", itemDescription )
+		itemDescriptionLabel:SetPos(10, 30)
+		itemDescriptionLabel:SetText(itemDescriptionText)
+		itemDescriptionLabel:SizeToContents()
+		itemDescriptionLabel:SetDark(1)
+
+		-- Set the item's category
+		local itemCategory = vgui.Create( "DLabel", itemDescription )
+		itemCategory:SetPos(10, 50)
+		itemCategory:SetText(itemProperties.Category)
+		itemCategory:SizeToContents()
+		itemCategory:SetDark(1)
+
+		-- Set the panel on the left side of the mouse
+		local w, h = itemDescription:GetSize()
+		itemDescription:SetPos(gui.MouseX() - w, gui.MouseY() - h)
+		itemDescription:SetDrawOnTop(true)
+	end
+
+	function modelPanel:OnCursorMoved()
+		-- Set the panel on the left side of the mouse
+		local w, h = itemDescription:GetSize()
+		itemDescription:SetPos(gui.MouseX() - w, gui.MouseY() - h)
+	end
+
+	function modelPanel:OnCursorExited()
+		itemDescription:Remove()
+	end
 end
 
 vgui.Register("CityModInventory", PANEL, "DScrollPanel")
