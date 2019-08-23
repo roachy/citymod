@@ -63,7 +63,7 @@ function PANEL:Init()
             -- Create item count
             modelPanel.ItemCount = vgui.Create("DLabel", modelPanel)
 			modelPanel.ItemCount:SetPos(65,20)
-			modelPanel.ItemCount:SetText(ply.Inventory[previousItemSlotId].Amount)
+			modelPanel.ItemCount:SetText(ply.Inventory[self.Id].Amount)
 			modelPanel.ItemCount:SetTextColor(Color(0, 0, 0))
 
             local itemActionMenu = function()
