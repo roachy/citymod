@@ -144,11 +144,23 @@ function PANEL:CreateItem(panel, index)
 
 	function modelPanel:OnCursorMoved()
 		-- Set the panel on the left side of the mouse
+		if (self:IsDragging()) then itemDescription:Remove() return end
+
+		-- Extra check here as the panel is not deleted immediately, and can technically be called again
+		if (not itemDescription:IsValid()) then
+			return
+		end
+
 		local w, h = itemDescription:GetSize()
 		itemDescription:SetPos(gui.MouseX() - w, gui.MouseY() - h)
 	end
 
 	function modelPanel:OnCursorExited()
+		-- On drag on top of item
+		if (itemDescription == nil) then
+			return
+		end
+
 		itemDescription:Remove()
 	end
 end

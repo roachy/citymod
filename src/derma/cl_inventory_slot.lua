@@ -26,17 +26,30 @@ function PANEL:Init()
 
         -- Wait for MoveItem callback
         net.Receive("MoveItem", function()
+
+            -- Swap the item in the player's inventory based on the inventory's ID
+            local item1 = LocalPlayer().Inventory[self.Id]
+            local item2 = LocalPlayer().Inventory[previousItemSlotId]
+
+            LocalPlayer().Inventory[self.Id] = item2
+            LocalPlayer().Inventory[previousItemSlotId] = item1
+
             -- Determine whether the receiver already has a child. If yes, we have to swap them
             if (#receiver:GetChildren() > 0) then
 
                 -- Grab the current slot's model
                 local currentSlot = receiver:GetChild(0)
-                print(currentSlot)
                 local currentSlotModel = currentSlot:GetModel()
 
                 -- Swap the two slots
                 previousItemSlot:SetModel(currentSlotModel)
                 currentSlot:SetModel(previousSlotModel)
+
+                local previousItemSlotCount = previousItemSlot:GetChild(0)
+                local currentSlotCount = currentSlot:GetChild(0)
+
+                currentSlotCount:SetText(LocalPlayer().Inventory[self.Id].Amount)
+                previousItemSlotCount:SetText(LocalPlayer().Inventory[previousItemSlotId].Amount)
                 return
             end
 
@@ -48,10 +61,10 @@ function PANEL:Init()
             modelPanel:Droppable("ItemSlot")
 
             -- Create item count
-			local DLabel = vgui.Create("DLabel", modelPanel)
-			DLabel:SetPos(65,20)
-			DLabel:SetText(ply.Inventory[previousItemSlotId].Amount)
-			DLabel:SetTextColor(Color(0, 0, 0))
+            modelPanel.ItemCount = vgui.Create("DLabel", modelPanel)
+			modelPanel.ItemCount:SetPos(65,20)
+			modelPanel.ItemCount:SetText(ply.Inventory[previousItemSlotId].Amount)
+			modelPanel.ItemCount:SetTextColor(Color(0, 0, 0))
 
             local itemActionMenu = function()
                 local dMenu = DermaMenu()
@@ -75,7 +88,7 @@ function PANEL:Init()
 							modelPanel:Remove()
 						end
 
-						DLabel:SetText(ply.Inventory[self.Id].Amount)
+						modelPanel.ItemCount:SetText(ply.Inventory[self.Id].Amount)
 					end)
 
 				end)
@@ -88,13 +101,76 @@ function PANEL:Init()
         
             modelPanel.DoClick = itemActionMenu
             modelPanel.DoRightClick = itemActionMenu
-            
-            -- Swap the item in the player's inventory based on the inventory's ID
-            local item1 = LocalPlayer().Inventory[self.Id]
-            local item2 = LocalPlayer().Inventory[previousItemSlotId]
 
-            LocalPlayer().Inventory[self.Id] = item2
-            LocalPlayer().Inventory[previousItemSlotId] = item1
+            local item = ply.Inventory[toSlot]
+
+            	-- Create panel that appears when you hover over the item
+            local itemDescription = nil
+            function modelPanel:OnCursorEntered()
+                itemDescription = vgui.Create("DPanel")
+                itemDescription:SetSize(300, 200)
+
+                -- Get the item's properties
+                local itemProperties = CityMod.Item:Get(item.Id)
+
+                -- Set the item's name
+                local itemName = vgui.Create( "DLabel", itemDescription )
+                itemName:SetPos( 10, 10 )
+
+                local itemNameText = nil
+                if (type(itemProperties.Name) == "function") then
+                    itemNameText = itemProperties.Name(item.Modifier)
+                else
+                    itemNameText = itemProperties.Name
+                end
+
+                itemName:SetText(itemNameText)
+                itemName:SizeToContents()
+                itemName:SetDark(1)
+
+                -- Set the item's description
+                local itemDescriptionText = nil
+                if (type(itemProperties.Description) == "function") then
+                    itemDescriptionText = itemProperties.Description(item.Modifier)
+                else
+                    itemDescriptionText = itemProperties.Description
+                end
+
+                local itemDescriptionLabel = vgui.Create( "DLabel", itemDescription )
+                itemDescriptionLabel:SetPos(10, 30)
+                itemDescriptionLabel:SetText(itemDescriptionText)
+                itemDescriptionLabel:SizeToContents()
+                itemDescriptionLabel:SetDark(1)
+
+                -- Set the item's category
+                local itemCategory = vgui.Create( "DLabel", itemDescription )
+                itemCategory:SetPos(10, 50)
+                itemCategory:SetText(itemProperties.Category)
+                itemCategory:SizeToContents()
+                itemCategory:SetDark(1)
+
+                -- Set the panel on the left side of the mouse
+                local w, h = itemDescription:GetSize()
+                itemDescription:SetPos(gui.MouseX() - w, gui.MouseY() - h)
+                itemDescription:SetDrawOnTop(true)
+            end
+
+            function modelPanel:OnCursorMoved()
+                -- Set the panel on the left side of the mouse
+                if (self:IsDragging()) then itemDescription:Remove() return end
+
+                -- Extra check here as the panel is not deleted immediately, and can technically be called again
+                if (not itemDescription:IsValid()) then
+                    return
+                end
+
+                local w, h = itemDescription:GetSize()
+                itemDescription:SetPos(gui.MouseX() - w, gui.MouseY() - h)
+            end
+
+            function modelPanel:OnCursorExited()
+                itemDescription:Remove()
+            end
         end)
 
     end, {})

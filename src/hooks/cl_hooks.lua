@@ -5,8 +5,8 @@ function CityMod:InitPostEntity()
     net.SendToServer()
 end
 
-function CityMod:PlayerNoClip(lpl)
-    return LocalPlayer().Rank <= CityMod.Rank.Moderator
+function CityMod:PlayerNoClip(ply)
+    return CityMod.Rank:IsModerator(ply)
 end
 
 local hud = {["CHudHealth"] = true, ["CHudBattery"] = true, ["CHudAmmo"] = true, ["CHudSecondaryAmmo"] = true}
@@ -67,7 +67,7 @@ hook.Add("HUDPaint", "CityModHUD", function()
             if (client:GetActiveWeapon() and client:GetActiveWeapon():Clip1() ~= -1) then
                 draw.RoundedBox(0, 202.5, ScrH() - 35, 125, 70, Color(30, 30, 30, 230))
                 draw.RoundedBox(0, 210, ScrH() - 25, 107, 15, Color(255, 140, 0, 30))
-                draw.RoundedBox(0, 210, ScrH() - 25, 107-(107/client:GetActiveWeapon():GetMaxClip1())*(client:GetActiveWeapon():GetMaxClip1()-client:GetActiveWeapon():Clip1()), 15, Color(255, 120, 0, 255))
+                draw.RoundedBox(0, 210, ScrH() - 25, 107 - (107/client:GetActiveWeapon():GetMaxClip1())*(client:GetActiveWeapon():GetMaxClip1()-client:GetActiveWeapon():Clip1()), 15, Color(255, 120, 0, 255))
                 draw.SimpleText(client:GetActiveWeapon():Clip1() .. "/" .. client:GetAmmoCount(client:GetActiveWeapon():GetPrimaryAmmoType()), "DermaDefaultBold", 245, ScrH() - 25, Color(255, 255, 255, 255), 0, 0)
             else
                 --draw.SimpleText("Ammo: " .. client:GetAmmoCount(client:GetActiveWeapon():GetPrimaryAmmoType()), "DermaDefaultBold", 260, ScrH() - 40, Color(255, 255, 255, 255), 0, 0)
