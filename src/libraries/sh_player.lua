@@ -94,7 +94,7 @@ function CityMod.Player.Load(len, ply)
     -- Removes the kick timer
     timer.Remove(ply:SteamID().." KickTimer")
 
-    CityMod.Database:Query("SELECT name,staff_rank,money FROM account WHERE account_id = '"..ply:AccountID().."'",function(result)
+    CityMod.Database:Query("SELECT name,money,staff_rank,donator_expiration FROM account WHERE account_id = '"..ply:AccountID().."'",function(result)
 
         local isNewPlayer = false
 
@@ -110,6 +110,7 @@ function CityMod.Player.Load(len, ply)
         ply.Money = result[1].money or CityMod.Config["Default Money"]
         ply.MaxInventorySize = result[1].max_inventory_size or CityMod.Config["Default Maximum Inventory Size"]
         ply.MaxInventoryWeight = result[1].max_inventory_weight or CityMod.Config["Default Maximum Inventory Weight"]
+        ply.Donator = result[1].donator_expiration and result[1].donator_expiration > os.time() or false
 
         -- Save the (potentially) new player's data, along with showing message of having been initialized now.
         if (isNewPlayer) then
@@ -120,10 +121,11 @@ function CityMod.Player.Load(len, ply)
             stmt:setNumber(1, ply:AccountID())
             stmt:setString(2, ply:SteamID())
             stmt:setString(3, ply.IngameName)
-            stmt:setNumber(4, ply.Rank)
-            stmt:setNumber(5, ply.Money)
-            stmt:setNumber(6, ply.MaxInventorySize)
-            stmt:setNumber(7, ply.MaxInventoryWeight)
+            stmt:setNumber(4, ply.Money)
+            stmt:setNumber(5, ply.Rank)
+            stmt:setNumber(6, ply.Rank)
+            stmt:setNumber(7, ply.MaxInventorySize)
+            stmt:setNumber(8, ply.MaxInventoryWeight)
             stmt:start()
         else 
             ply:LogIP("has been initialized")

@@ -58,3 +58,8 @@ end
 function playerMeta:TakeMoney(amount)
     return CityMod.Player:TakeMoney(self, amount)
 end
+
+-- Check whether the player is a donator
+function playerMeta:IsDonator()
+    return self.Donator
+end

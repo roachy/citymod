@@ -1,30 +1,40 @@
 local CMD = CityMod.Command:New("dropmoney")
 
 function CMD:Execute(ply,args)
-local amount = tonumber(args[1])
 
-if (not amount) then
-    ply:NotifyError("Supply an amount of money")
-    return
-end
-
-amount = math.floor(amount)
-
-if (amount <= 0) then
-    ply:NotifyError("Amount must be a positive number")
-    return
-end
-
-if (amount > ply.Money) then
-    if (amount == 1) then
-        ply:Notify("You need a dollar dollar, a dollar is what you need")
+    -- Simply return if the player does not have any money
+    if (ply.Money <= 0) then
+        ply:NotifyError("You do not have any money to drop")
         return
     end
-    ply:NotifyError("You need another "..amount-ply.Money.."$")
-    return
-end
 
-ply:TakeMoney(amount) -- All checks passed, set money serverside
-ply:NotifyGeneric("You dropped "..amount.."$")
+    -- Store the args
+    local amount = tonumber(args[1])
+
+    -- If args was nil, return
+    if (not amount) then
+        ply:NotifyError("Supply an amount of money")
+        return
+    end
+
+    -- Floor the value
+    amount = math.floor(amount)
+
+    -- The amount must be a positive number
+    if (amount <= 0) then
+        ply:NotifyError("Amount must be a positive number")
+        return
+    end
+
+    -- If the player does not have the amount of money specified, return
+    if (amount > ply.Money) then
+        ply:NotifyError("You need another "..amount-ply.Money.."$")
+        return
+    end
+
+    -- All checks passed, set money serverside and notify the player
+    ply:TakeMoney(amount)
+    ply:NotifyGeneric("You dropped "..amount.."$")
+    CityMod.Database:Query("UPDATE account SET money = "..ply.Money.." WHERE account_id = "..ply:AccountID())
 end
 CMD:Register()
