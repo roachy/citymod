@@ -189,12 +189,13 @@ function CityMod.Player.Load(len, ply)
         -- The player now needs to receive data about players that are already on the server.
         local plyTable = player.GetAll()
 
+        -- Only one network message will be sent this time, containing data of all the already loaded players
         net.Start("LoadPlayer")
         net.WriteUInt(#plyTable-1,8) -- Write the count of players to read. Minus one cause we do not need to read our own data again.
         for _,v in pairs(plyTable) do
 
-            -- If it is not ourself, send that player's data to us
-            if (v ~= ply) then
+            -- If it is not ourself, and that other player has been initialized, send that player's data to us
+            if (v ~= ply and v.Initialized) then
                 net.WriteEntity(v) -- Write the player
                 WritePublicPlayerData(v) -- Write their public data
             end
