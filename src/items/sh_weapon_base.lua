@@ -1,4 +1,4 @@
-local BASE = CityMod.Item.Category:New("Contraband")
+local BASE = CityMod.Item.Category:New("Weapons")
 BASE.Test = "awer"
 
 function BASE:Execute()

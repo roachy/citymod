@@ -10,3 +10,4 @@ CityMod.Config["Default Money"] = 10000
 CityMod.Config["Default Rank"] = CityMod.Rank.Player
 CityMod.Config["Default Maximum Inventory Size"] = 30
 CityMod.Config["Default Maximum Inventory Weight"] = 50
+CityMod.Config["Default Job"] = "Citizen"

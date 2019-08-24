@@ -16,6 +16,11 @@ function CityMod:PlayerLoadout(ply)
     ply:Give("weapon_physgun")
     ply:Give("gmod_tool")
     ply:Give("gmod_camera")
+
+    -- Get the custom loadout of the player, both weapons and ammo.
+    --local job = CityMod.Job:Get(ply.Job)
+
+
 end
 
 function CityMod:PlayerNoClip(ply)

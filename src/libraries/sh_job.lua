@@ -1,79 +1,63 @@
 CityMod.Job = CityMod.Library:New("Job")
-
-local _jobs = {}
+CityMod.Job.Category = {}
 
 local CLASS_TABLE = {__index = CLASS_TABLE}
 
-function CLASS_TABLE:Register()
-    return CityMod.Command:Register(self)
-end
+-- Set default values of a job
+CLASS_TABLE.Description = "Sample Job"
+CLASS_TABLE.Category = "None"
+CLASS_TABLE.Models = { "models/error.mdl" };
+CLASS_TABLE.WeaponLoadout = {}
+CLASS_TABLE.AmmoLoadout = {}
+CLASS_TABLE.SpawnPoints = {} -- Spawnpoints should be set for the specific map
 
--- Note: Had to make use of "GAME" as client did not seem to accept "LUA" for whatever fucking reason it had. It is pretty easy to change functionality over once it works again however.
-function CityMod.Job:Load(directory)
+local _jobs = {}
+local _categories = {}
 
-    if (directory == nil) then
-    directory = "jobs"
-    end
-
-    local directory = debug.getinfo(2, "S").source:sub(2):match("(.*/)")..directory
-    local files,dirs = file.Find(directory.."/*", "GAME", "namedesc")
-
-    if (#files > #dirs) then
-        print("[CityMod] Job -> There are more baseclasses than categories")
-        return
-    end
-
-    for k, v in pairs(files) do
-        CityMod.File:Include(directory:sub(11).."/"..v)
-        
-        local f = string.StripExtension(v):sub(4)
-        local _categoryDir = directory.."/"..f
-        
-        if (file.Exists(_categoryDir,"GAME")) then
-            local filesCategory,dirsCategory = file.Find(_categoryDir.."/*.lua", "game", "namedesc")
-            
-            for k2,v2 in pairs(filesCategory) do
-                CityMod.File:Include(_categoryDir:sub(11).."/"..v2)
-            end
-        else
-            print("[CityMod] Job -> Baseclass '"..f.."' is missing a category folder") 
-            return
-        end
-    end
-end
-
-function CityMod.Job:New(categoryName)
-    local object = {}
-    setmetatable(object,self)
-    
-    if (categoryName) then
-        object.__index = object
-        object.Category = categoryName
-        -- Do more stuff here for categories, such as GUI or just store the things in _jobs
-    end
+-- Creation of a new item object
+function CityMod.Job:New(id) -- The ID of the job
+    local object = CityMod.Metatable:New(CLASS_TABLE)
+    object.Name = id
     return object
 end
 
-function CityMod.Job:Register()
+function CLASS_TABLE:Register()
+    if (self.Name == nil) then -- If name is nil, it is a category
+        return CityMod.Job.Category:Register(self)
+    end
 
-    if (not self.Name) then
-        print("No name specified to job in "..debug.getinfo(2, "S").source:sub(2))
+    return CityMod.Job:Register(self)
+end
+
+-- Registering a new item
+function CityMod.Job:Register(data)
+
+    -- Check if an ID was specified to the item (the parameter of :New on item creation)
+    if (not data.Name) then
+        error("No ID specified to job", 2)
         return
     end
 
-    _jobs[string.StripExtension(string.GetFileFromFilename(debug.getinfo(2, "S").source:sub(2)))] = self
-    self.Id = nil
-
-    -- Remove things that are useless for client
-    if (CLIENT) then
-    self.Execute = nil
+    -- Check if the item has a valid category
+    if (data.Category == "None") then
+        error("Job with name "..data.Name.." does not have a category", 2)
+        return
     end
 
-    -- Remove things that are useless for server
-    if (SERVER) then
-    self.Name = nil
+    -- Get the category of the item
+    local jobCategory = CityMod.Job.Category:Get(data.Category)
+
+    -- Check if the category was found
+    if (jobCategory == nil) then
+        error("Category with name "..data.Category.." does not exist", 2)
+        return
     end
 
+    -- Set metatable to the category to make it able to access its baseclass
+    setmetatable(data, jobCategory)
+
+    -- Store the item by its ID
+    _jobs[data.Name] = data
 end
 
 function CityMod.Job:Get(item)
@@ -82,4 +66,24 @@ end
 
 function CityMod.Job:GetAll()
     return _jobs
+end
+
+-- Creating a new item category
+function CityMod.Job.Category:New(categoryName)
+    local object = CityMod.Metatable:New(CLASS_TABLE)
+    object.__index = object -- Set index to have baseclass be callable by children
+    object.Category = categoryName
+    return object
+end
+
+function CityMod.Job.Category:Register(data)
+    _categories[data.Category] = data -- Store the category
+end
+
+function CityMod.Job.Category:Get(category)
+    return _categories[category]
+end
+
+function CityMod.Job.Category:GetAll()
+    return _categories
 end

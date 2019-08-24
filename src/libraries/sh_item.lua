@@ -19,8 +19,15 @@ local _categories = {}
 
 -- Creation of a new item object
 function CityMod.Item:New(id) -- The ID of the item
+
+    local itemId = CityMod.ItemID:Get(id)
+
+    if (itemId == nil) then
+        error("Item with ID "..id.." does not exist in the enums")
+    end
+
     local object = CityMod.Metatable:New(CLASS_TABLE)
-    object.Id = id
+    object.Id = itemId
     return object
 end
 
@@ -37,27 +44,27 @@ function CityMod.Item:Register(data)
 
     -- Check if an ID was specified to the item (the parameter of :New on item creation)
     if (not data.Id) then
-        print("No ID specified to item in file "..debug.getinfo(2, "S").source:sub(2))
+        error("No ID specified to item", 2)
         return
     end
 
     -- Check if the item has a valid category
     if (data.Category == "None") then
-        print("Item with name "..data.Name.." does not have a category")
+        error("Item with name "..data.Name.." does not have a category", 2)
         return
     end
 
     -- Get the category of the item
-    local category = CityMod.Item.Category:Get(data.Category)
+    local itemCategory = CityMod.Item.Category:Get(data.Category)
 
     -- Check if the category was found
-    if (category == nil) then
-        print("Category with name "..data.Category.." does not exist")
+    if (itemCategory == nil) then
+        error("Category with name "..data.Category.." does not exist", 2)
         return
     end
 
     -- Set metatable to the category to make it able to access its baseclass
-    setmetatable(data, category)
+    setmetatable(data, itemCategory)
 
     -- Store the item by its ID
     _items[data.Id] = data

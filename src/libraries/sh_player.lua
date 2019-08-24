@@ -68,9 +68,23 @@ net.Receive("NotifyPlayer", CityMod.Player.Notify)
 function CityMod.Player.UpdateMoney()
     local amount = net.ReadUInt(32)
 
-    ply.Money = amount
+    LocalPlayer().Money = amount
 end
 net.Receive("UpdateMoney", CityMod.Player.UpdateMoney)
+
+-- When the player has changed job,
+function CityMod.Player.ChangeJob()
+    
+    -- The player's job to update
+    local ply = net.ReadEntity()
+    
+    -- The job of the player
+    local job = net.ReadString()
+
+    -- Set the job on the player
+    ply.Job = job
+end
+net.Receive("ChangeJob", CityMod.Player.ChangeJob)
 
 else -- SERVER
 
@@ -82,6 +96,7 @@ util.AddNetworkString("MoveItem")
 util.AddNetworkString("UseItem")
 util.AddNetworkString("UpdateMoney")
 util.AddNetworkString("UpdateInventory")
+util.AddNetworkString("ChangeJob")
 
 -- Load a player's data when they have been initialized, and told the server so
 function CityMod.Player.Load(len, ply)
@@ -123,7 +138,7 @@ function CityMod.Player.Load(len, ply)
             stmt:setString(3, ply.IngameName)
             stmt:setNumber(4, ply.Money)
             stmt:setNumber(5, ply.Rank)
-            stmt:setNumber(6, ply.Rank)
+            stmt:setNumber(6, 0)
             stmt:setNumber(7, ply.MaxInventorySize)
             stmt:setNumber(8, ply.MaxInventoryWeight)
             stmt:start()
@@ -131,16 +146,16 @@ function CityMod.Player.Load(len, ply)
             ply:LogIP("has been initialized")
         end
 
-        -- Allow the player to move
+        -- Allow the player to move and show the player
         ply:UnLock()
         ply:SetColor(Color(255,255,255,255))
         ply:SetRenderMode(RENDERMODE_NORMAL)
-        CityMod:PlayerLoadout(ply)
+
         ply:SetModel("models/player/breen.mdl")
         ply:SetupHands()
 
         -- Send information about the loaded player to all players, including themself
-        for k,v in pairs(player.GetAll()) do
+        for _,v in pairs(player.GetAll()) do
             net.Start("LoadPlayer")
                 net.WriteEntity(ply)
 
@@ -155,9 +170,11 @@ function CityMod.Player.Load(len, ply)
                     net.WriteUInt(ply.MaxInventorySize, 32)
                     net.WriteUInt(ply.MaxInventoryWeight, 32)
                 end
-
             net.Send(v)
         end
+
+        -- Set the player's job to the default one
+        CityMod.Player:ChangeJob(ply, CityMod.Config["Default Job"])
         
         CityMod.Player:LoadInventory(ply, isNewPlayer) -- Load the player's inventory
     end)
@@ -455,7 +472,42 @@ function CityMod.Player:UpdateMoney(ply)
     net.Send(ply)
 end
 
+-- Change the player's job
+function CityMod.Player:ChangeJob(ply, jobName, force)
 
+    -- Check if a job name was specified
+    if (not jobName) then
+        error("No job name specified", 2)
+    end
+
+    -- Determine whether the job exists
+    local job = CityMod.Job:Get(jobName)
+    if (not job) then
+        error("Job with name "..jobName.." could not be found", 2)
+    end
+
+    -- Do checks here that should prevent a user from switching job, if they are ex. dead or so. Note that these can be bypassed with "force"
+
+
+    -- Set the job on the player
+    ply.Job = job.Name
+
+    -- Restore the player's health
+    ply:SetHealth(100)
+
+    -- Put the player in their potentially random spawnpoint
+    ply:SetPos(job.SpawnPoints[math.random(1,#job.SpawnPoints)])
+    
+    -- Strip the player's weapons, and give them their loadout
+    ply:StripWeapons()
+    CityMod:PlayerLoadout(ply)    
+
+    -- Inform all players of the this player's job
+    net.Start("ChangeJob")
+        net.WriteEntity(ply)
+        net.WriteString(job.Name)
+    net.Broadcast()
+end
 
 
 end -- SHARED
