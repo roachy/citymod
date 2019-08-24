@@ -4,26 +4,30 @@ if (CLIENT) then -- CLIENT
 
 -- When the player has to load a player's data (which could be their own data)
 function CityMod.Player.Load()
-    -- Read the player from the server
-    local ply = net.ReadEntity()
 
-    -- Set public data (name, rank etc)
-    ply.IngameName = net.ReadString()
-    ply.Rank = net.ReadUInt(8)
+    local plyCount = net.ReadUInt(8)
 
-    -- If we have already been initialized, we can skip the next few steps
-    if (LocalPlayer().Initialized) then
-        return
-    end
+    for i = 1,plyCount do
+        -- Read the player from the server
+        local ply = net.ReadEntity()
 
-    -- If it is our own data, set ourselves as initialized and load our personal data (such as money)
-    if (ply == LocalPlayer()) then
-        ply.Initialized = true
-        ply.Money = net.ReadUInt(32)
-        ply.MaxInventorySize = net.ReadUInt(32)
-        ply.MaxInventoryWeight = net.ReadUInt(32)
-    end
-        
+        -- Set public data (name, rank etc)
+        ply.IngameName = net.ReadString()
+        ply.Rank = net.ReadUInt(8)
+
+        -- If we have already been initialized, we can skip the next few steps
+        if (LocalPlayer().Initialized) then
+            return
+        end
+
+        -- If it is our own data, set ourselves as initialized and load our personal data (such as money)
+        if (ply == LocalPlayer()) then
+            ply.Initialized = true
+            ply.Money = net.ReadUInt(32)
+            ply.MaxInventorySize = net.ReadUInt(32)
+            ply.MaxInventoryWeight = net.ReadUInt(32)
+        end
+    end     
 end
 net.Receive("LoadPlayer", CityMod.Player.Load)
 
@@ -154,24 +158,49 @@ function CityMod.Player.Load(len, ply)
         ply:SetModel("models/player/breen.mdl")
         ply:SetupHands()
 
+        -- Create function for sending public player data
+        local function WritePublicPlayerData(ply)
+            net.WriteString(ply.IngameName)
+            net.WriteUInt(ply.Rank, 8)
+        end
+
+        local function WritePrivatePlayerData(ply)
+            net.WriteUInt(ply.Money, 32)
+            net.WriteUInt(ply.MaxInventorySize, 32)
+            net.WriteUInt(ply.MaxInventoryWeight, 32)
+        end
+
         -- Send information about the loaded player to all players, including themself
         for _,v in pairs(player.GetAll()) do
             net.Start("LoadPlayer")
-                net.WriteEntity(ply)
+                net.WriteUInt(1, 8) -- The count of players to read
+                net.WriteEntity(ply) -- The player entity
 
-                -- Public data available for everyone to see
-                net.WriteString(ply.IngameName)
-                net.WriteUInt(ply.Rank, 8)
+                WritePublicPlayerData(ply) -- Write the public data
 
                 -- If the iterated player is equivalent to the player itself, send them their personal data, such as money.
                 if (ply == v) then
                     -- Private data only the player themself should know (money ex)
-                    net.WriteUInt(ply.Money, 32)
-                    net.WriteUInt(ply.MaxInventorySize, 32)
-                    net.WriteUInt(ply.MaxInventoryWeight, 32)
+                    WritePrivatePlayerData(ply)
                 end
             net.Send(v)
         end
+
+        -- The player now needs to receive data about players that are already on the server.
+        local plyTable = player.GetAll()
+
+        net.Start("LoadPlayer")
+        net.WriteUInt(#plyTable-1,8) -- Write the count of players to read. Minus one cause we do not need to read our own data again.
+        for _,v in pairs(plyTable) do
+
+            -- If it is not ourself, send that player's data to us
+            if (v ~= ply) then
+                net.WriteEntity(v) -- Write the player
+                WritePublicPlayerData(v) -- Write their public data
+            end
+        end
+        net.Send(ply) -- Send all of the player's data to ourself
+
 
         -- Set the player's job to the default one
         CityMod.Player:ChangeJob(ply, CityMod.Config["Default Job"])
