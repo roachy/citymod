@@ -2,9 +2,24 @@ CityMod.Player = CityMod.Library:New("Player")
 
 if (CLIENT) then -- CLIENT
 
--- When the player has to load a player's data (which could be their own data)
+-- Call back to set initialized flag when we have finished initializing
 function CityMod.Player.Load()
+    LocalPlayer().Initialized = true
+end
+net.Receive("LoadPlayer", CityMod.Player.Load)
 
+-- When the player has to load their own data (such as money)
+function CityMod.Player.LoadPrivatePlayerData()
+    ply.Money = net.ReadUInt(32)
+    ply.MaxInventorySize = net.ReadUInt(32)
+    ply.MaxInventoryWeight = net.ReadUInt(32)
+end
+net.Receive("LoadPrivatePlayerData", CityMod.Player.LoadPrivatePlayerData)
+
+-- When the player has to load a player's public data
+function CityMod.Player.LoadPublicData()
+
+    -- Get the count of players to set data on
     local plyCount = net.ReadUInt(8)
 
     for i = 1,plyCount do
@@ -14,22 +29,9 @@ function CityMod.Player.Load()
         -- Set public data (name, rank etc)
         ply.IngameName = net.ReadString()
         ply.Rank = net.ReadUInt(8)
-
-        -- If we have already been initialized, we can skip the next few steps
-        if (LocalPlayer().Initialized) then
-            return
-        end
-
-        -- If it is our own data, set ourselves as initialized and load our personal data (such as money)
-        if (ply == LocalPlayer()) then
-            ply.Initialized = true
-            ply.Money = net.ReadUInt(32)
-            ply.MaxInventorySize = net.ReadUInt(32)
-            ply.MaxInventoryWeight = net.ReadUInt(32)
-        end
     end     
 end
-net.Receive("LoadPlayer", CityMod.Player.Load)
+net.Receive("LoadPublicPlayerData", CityMod.Player.LoadPublicData)
 
 -- Update the player's inventory. Please note that this method gets overriden in the inventory once the inventory has been initialized.
 function CityMod.Player.UpdateInventory()
@@ -94,6 +96,8 @@ else -- SERVER
 
 -- Create network messages
 util.AddNetworkString("LoadPlayer")
+util.AddNetworkString("LoadPublicPlayerData")
+util.AddNetworkString("LoadPrivatePlayerData")
 util.AddNetworkString("LoadInventory")
 util.AddNetworkString("NotifyPlayer")
 util.AddNetworkString("MoveItem")
@@ -158,55 +162,60 @@ function CityMod.Player.Load(len, ply)
         ply:SetModel("models/player/breen.mdl")
         ply:SetupHands()
 
-        -- Create function for sending public player data
-        local function WritePublicPlayerData(ply)
-            net.WriteString(ply.IngameName)
-            net.WriteUInt(ply.Rank, 8)
-        end
-
+        
+        -- Local function for sending private player data
         local function WritePrivatePlayerData(ply)
             net.WriteUInt(ply.Money, 32)
             net.WriteUInt(ply.MaxInventorySize, 32)
             net.WriteUInt(ply.MaxInventoryWeight, 32)
         end
 
+        -- Local function for sending public player data
+        local function WritePublicPlayerData(ply)
+            net.WriteString(ply.IngameName)
+            net.WriteUInt(ply.Rank, 8)
+        end
+
+        -- Send the private data to the player
+        net.Start("LoadPrivatePlayerData")
+            WritePrivatePlayerData(ply)
+        net.Send(ply)
+
         -- Send information about the loaded player to all players, including themself
         for _,v in pairs(player.GetAll()) do
-            net.Start("LoadPlayer")
+            net.Start("LoadPublicPlayerData")
                 net.WriteUInt(1, 8) -- The count of players to read
                 net.WriteEntity(ply) -- The player entity
 
                 WritePublicPlayerData(ply) -- Write the public data
-
-                -- If the iterated player is equivalent to the player itself, send them their personal data, such as money.
-                if (ply == v) then
-                    -- Private data only the player themself should know (money ex)
-                    WritePrivatePlayerData(ply)
-                end
             net.Send(v)
         end
 
         -- The player now needs to receive data about players that are already on the server.
         local plyTable = player.GetAll()
 
-        -- Only one network message will be sent this time, containing data of all the already loaded players
-        net.Start("LoadPlayer")
-        net.WriteUInt(#plyTable-1,8) -- Write the count of players to read. Minus one cause we do not need to read our own data again.
-        for _,v in pairs(plyTable) do
+        -- Send one network message containing data of all the already loaded players to the new player
+        net.Start("LoadPublicPlayerData")
+            net.WriteUInt(#plyTable-1,8) -- Write the count of players to read. Minus one cause we do not need to read our own data again.
+            for _,v in pairs(plyTable) do
 
-            -- If it is not ourself, and that other player has been initialized, send that player's data to us
-            if (v ~= ply and v.Initialized) then
-                net.WriteEntity(v) -- Write the player
-                WritePublicPlayerData(v) -- Write their public data
+                -- If it is not ourself, and the other player has been initialized, send that player's data to us
+                if (v ~= ply and v.Initialized) then
+                    net.WriteEntity(v) -- Write the player entity
+                    WritePublicPlayerData(v) -- Write their public data
+                end
             end
-        end
-        net.Send(ply) -- Send all of the player's data to ourself
-
+        net.Send(ply)
 
         -- Set the player's job to the default one
         CityMod.Player:ChangeJob(ply, CityMod.Config["Default Job"])
         
-        CityMod.Player:LoadInventory(ply, isNewPlayer) -- Load the player's inventory
+         -- Load the player's inventory
+        CityMod.Player:LoadInventory(ply, isNewPlayer)
+
+        -- Just finish initializing the player now, as the inventory will happen asynchronously shortly after
+        net.Start("LoadPlayer")
+        net.Send(ply)
     end)
 end
 net.Receive("LoadPlayer", CityMod.Player.Load)
