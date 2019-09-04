@@ -47,11 +47,12 @@ function PANEL:CreateItem(panel, index)
 		modelPanel:Remove()
 	end
 	
-	modelPanel = vgui.Create("DModelPanel", panel[index])
+	modelPanel = vgui.Create("SpawnIcon", panel[index])
 	modelPanel:SetSize(80,40)
 	modelPanel:Droppable("ItemSlot")
-
 	modelPanel:SetModel(itemProperties.Model)
+	modelPanel.Model = itemProperties.Model
+	modelPanel:SetTooltip(false)
 
 	-- Create item count
 	local DLabel = vgui.Create("DLabel", modelPanel)

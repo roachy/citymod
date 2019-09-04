@@ -12,7 +12,7 @@ function PANEL:Init()
 
         -- Grab the previous item slot
         local previousItemSlot = tableOfDroppedPanels[1]
-        local previousSlotModel = previousItemSlot:GetModel()
+        local previousSlotModel = previousItemSlot.Model
         local previousItemSlotId = previousItemSlot:GetParent().Id
 
         local fromSlot = previousItemSlotId
@@ -39,14 +39,18 @@ function PANEL:Init()
 
                 -- Grab the current slot's model
                 local currentSlot = receiver:GetChild(0)
-                local currentSlotModel = currentSlot:GetModel()
+                local currentSlotModel = currentSlot.Model
 
                 -- Swap the two slots
                 previousItemSlot:SetModel(currentSlotModel)
-                currentSlot:SetModel(previousSlotModel)
+                previousItemSlot.Model = currentSlotModel
 
-                local previousItemSlotCount = previousItemSlot:GetChild(0)
-                local currentSlotCount = currentSlot:GetChild(0)
+                currentSlot:SetModel(previousSlotModel)
+                currentSlot.Model = previousSlotModel
+
+                -- It is on index 1, not 0
+                local previousItemSlotCount = previousItemSlot:GetChild(1)
+                local currentSlotCount = currentSlot:GetChild(1)
 
                 currentSlotCount:SetText(LocalPlayer().Inventory[self.Id].Amount)
                 previousItemSlotCount:SetText(LocalPlayer().Inventory[previousItemSlotId].Amount)
@@ -55,10 +59,12 @@ function PANEL:Init()
 
             previousItemSlot:Remove()
 
-            local modelPanel = vgui.Create("DModelPanel", receiver)
+            local modelPanel = vgui.Create("SpawnIcon", receiver)
             modelPanel:SetSize(80,40)
             modelPanel:SetModel(previousSlotModel)
+            modelPanel.Model = previousSlotModel
             modelPanel:Droppable("ItemSlot")
+            modelPanel:SetTooltip(false)
 
             -- Create item count
             modelPanel.ItemCount = vgui.Create("DLabel", modelPanel)
