@@ -10,6 +10,8 @@ CLASS_TABLE.Models = { "models/error.mdl" };
 CLASS_TABLE.WeaponLoadout = {}
 CLASS_TABLE.AmmoLoadout = {}
 CLASS_TABLE.SpawnPoints = {} -- Spawnpoints should be set for the specific map
+CLASS_TABLE.CurrentActive = 0
+CLASS_TABLE.MaxActive = 1
 
 local _jobs = {}
 local _categories = {}

@@ -8,6 +8,7 @@ JOB.Models = { "models/error.mdl", "models/props_borealis/mooring_cleat01.mdl" }
 JOB.WeaponLoadout = {}
 JOB.AmmoLoadout = {}
 JOB.SpawnPoints = { Vector(0,0,0), Vector(3000,0,0) }
+JOB.MaxActive = game.MaxPlayers()
 
 -- Register the job
 JOB:Register()

@@ -508,7 +508,7 @@ function CityMod.Player:SetMoney(ply, amount)
 
     -- Check if money is negative
     if (amount < 0) then
-        error("Prevented attempt to set a player's value to negative money", 2)
+        error("Prevented attempt to set a player's money a negative amount", 2)
     end
 
     -- Update the player's money
@@ -528,6 +528,12 @@ end
 -- Change the player's job
 function CityMod.Player:ChangeJob(ply, jobName, force)
 
+    -- Check the player's job cooldown. Cooldown at this moment is hardcoded to 5 seconds. "force" can bypass this. The 
+    if (not force and ply.ChangeJobCooldown and ply.ChangeJobCooldown > CurTime()) then
+        ply:NotifyError("You cannot change jobs so frequently. Please wait a moment")
+        return
+    end
+
     -- Check if a job name was specified
     if (not jobName) then
         error("No job name specified", 2)
@@ -544,8 +550,26 @@ function CityMod.Player:ChangeJob(ply, jobName, force)
         return
     end
 
+    -- Do checks here that should prevent a user from switching job, if they are ex. unconscious, hurt, or so. Note that these can be bypassed with "force"
     if (not force) then
-        -- Do checks here that should prevent a user from switching job, if they are ex. unconscious, hurt, or so. Note that these can be bypassed with "force"
+
+        -- Check if the player is switching to their own job
+        if (ply:GetJob() == job.Name) then
+            ply:NotifyError("You are aleady a "..ply:GetJob())
+            return
+        end
+
+        -- Check if the limit of the job has been exceeded
+        if (job.CurrentActive == job.MaxActive) then
+            ply:NotifyError("The maximum amount of players for this job has been reached")
+            return
+        end
+        
+    end
+
+    -- Set the player's cooldown on changing jobs, if the player has had a job previously (aka. not just initialized)
+    if (ply:GetJob()) then
+        ply.ChangeJobCooldown = CurTime() + 5
     end
 
     -- Set the job on the player
@@ -559,15 +583,16 @@ function CityMod.Player:ChangeJob(ply, jobName, force)
     
     -- Strip the player's weapons, and give them their loadout
     ply:StripWeapons()
-    CityMod:PlayerLoadout(ply)    
+    CityMod:PlayerLoadout(ply)
+
+    -- Set the player to a random job's model
+    ply:SetModel(job.Models[math.random(1,#job.Models)])
 
     -- Inform all players of the this player's job
     net.Start("ChangeJob")
         net.WriteEntity(ply)
         net.WriteString(job.Name)
     net.Broadcast()
-
-    print(job.Name)
 end
 
 -- Handler for a player's job change request

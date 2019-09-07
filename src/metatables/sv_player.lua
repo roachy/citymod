@@ -83,3 +83,8 @@ end
 function playerMeta:SetJob(jobName)
     self.Job = jobName
 end
+
+-- Get the player's job
+function playerMeta:GetJob()
+    return self.Job
+end

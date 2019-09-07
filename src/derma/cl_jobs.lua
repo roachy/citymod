@@ -10,31 +10,31 @@ function PANEL:Init()
 
             jobs[v.Category] = {}
 
-            jobs[v.Category].Cat = self:Add(v.Category)
+            jobs[v.Category] = self:Add(v.Category)
 
-            local cat = jobs[v.Category].Cat
+            local collapsibleCategory = jobs[v.Category]
 
-            cat.A = vgui.Create("DIconLayout", cat)
-            cat.A:Dock(FILL)
-            cat.A:SetSpaceY(5)
-            cat.A:SetSpaceX(5)
-            cat:SetContents(cat.A)
+            collapsibleCategory.IconLayout = vgui.Create("DIconLayout", collapsibleCategory)
+            collapsibleCategory.IconLayout:Dock(FILL)
+            collapsibleCategory.IconLayout:SetSpaceY(5)
+            collapsibleCategory.IconLayout:SetSpaceX(5)
+            collapsibleCategory:SetContents(collapsibleCategory.IconLayout)
 
-            for i = 1, 20 do
-                local ListItem = cat.A:Add("DPanel")
-                ListItem:SetSize(80, 40)
+        end
 
-                local SpawnI = vgui.Create( "SpawnIcon" , ListItem )
+        local ListItem = jobs[v.Category].IconLayout:Add("DPanel")
+        ListItem:SetSize(80, 40)
 
-                -- Get a random job model, and set it accordingly
-                local randomJobModel = v.Models[math.random(#v.Models)]
-                SpawnI:SetModel(randomJobModel)
-                SpawnI.DoClick = function()
-                    net.Start("ChangeJob")
-                    net.WriteString(k)
-                    net.SendToServer()
-                end
-            end
+        local SpawnI = vgui.Create( "SpawnIcon" , ListItem )
+        SpawnI:SetSize(80,40)
+
+        -- Get a random job model, and set it accordingly
+        local randomJobModel = v.Models[math.random(#v.Models)]
+        SpawnI:SetModel(randomJobModel)
+        SpawnI.DoClick = function()
+            net.Start("ChangeJob")
+                net.WriteString(k)
+            net.SendToServer()
         end
 
         -- Add the job to the specified category here

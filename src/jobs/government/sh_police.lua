@@ -8,6 +8,7 @@ JOB.Models = { "models/error.mdl" };
 JOB.WeaponLoadout = {}
 JOB.AmmoLoadout = {}
 JOB.SpawnPoints = { Vector(0,0,0), Vector(3000,0,0) }
+JOB.MaxActive = 0
 
 -- Register the job
 JOB:Register()
