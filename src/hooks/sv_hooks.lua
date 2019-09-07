@@ -54,7 +54,7 @@ function CityMod:PhysgunPickup(ply, ent)
 
     -- Allow picking up players if the player is a moderator
     if (ent:IsPlayer() and ply:HasModeratorRank()) then
-        ent:Freeze(true)
+        ent:Lock(true)
 		ent:SetMoveType(MOVETYPE_NONE)
         return true
     end
@@ -72,7 +72,7 @@ function CityMod:PhysgunDrop(ply,ent)
         if ply:KeyPressed(IN_ATTACK2) then return end
         
 		ent:DropToFloor()
-		ent:Freeze(false)
+		ent:Lock(false)
 		ent:SetMoveType(MOVETYPE_WALK)
 	end
 end
@@ -127,6 +127,3 @@ function CityMod:PlayerSay(ply, str)
     command:Execute(ply,args) -- Execute the command
     return ""
 end
-
--- Return the player's string if no command was specified
-return str
