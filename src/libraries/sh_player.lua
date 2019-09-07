@@ -504,6 +504,20 @@ function CityMod.Player:TakeMoney(ply, amount)
     self:UpdateMoney(ply)
 end
 
+function CityMod.Player:SetMoney(ply, amount)
+
+    -- Check if money is negative
+    if (amount < 0) then
+        error("Prevented attempt to set a player's value to negative money", 2)
+    end
+
+    -- Update the player's money
+    ply.Money = amount
+
+    -- Call UpdateMoney
+    self:UpdateMoney(ply)
+end
+
 -- Update the player's money client-side
 function CityMod.Player:UpdateMoney(ply)
     net.Start("UpdateMoney")

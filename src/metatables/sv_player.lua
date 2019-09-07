@@ -51,12 +51,12 @@ end
 
 -- Give a player money
 function playerMeta:GiveMoney(amount)
-    return CityMod.Player:GiveMoney(self, amount)
+    CityMod.Player:GiveMoney(self, amount)
 end
 
 -- Take money from a player
 function playerMeta:TakeMoney(amount)
-    return CityMod.Player:TakeMoney(self, amount)
+    CityMod.Player:TakeMoney(self, amount)
 end
 
 -- Check whether the player is a donator
@@ -71,5 +71,5 @@ end
 
 -- Sets the player's money to the amount specified
 function playerMeta:SetMoney(amount)
-    self.Money = amount
+    CityMod.Player:SetMoney(self, amount)
 end
