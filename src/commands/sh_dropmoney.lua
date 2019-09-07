@@ -38,5 +38,12 @@ function CMD:Execute(ply,args)
     ply:TakeMoney(amount)
     ply:NotifyGeneric("You dropped "..amount.."$")
     CityMod.Database:Query("UPDATE account SET money = "..ply:GetMoney().." WHERE account_id = "..ply:AccountID())
+
+    -- Spawn the money
+    local moneybag = ents.Create("citymod_money")
+    moneybag:SetPos(ply:GetEyeTrace().HitPos)
+    moneybag:SetAmount(math.Min(amount, 2147483647))
+    moneybag:Spawn()
+    moneybag:Activate()
 end
 CMD:Register()
