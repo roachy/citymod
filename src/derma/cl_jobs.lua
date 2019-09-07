@@ -8,8 +8,6 @@ function PANEL:Init()
         -- Create the job category if it does not exist
         if (jobs[v.Category] == nil) then
 
-            print(k)
-
             jobs[v.Category] = {}
 
             jobs[v.Category].Cat = self:Add(v.Category)
@@ -28,9 +26,14 @@ function PANEL:Init()
 
                 local SpawnI = vgui.Create( "SpawnIcon" , ListItem )
 
-                -- Get Set it to a random spawn icon
+                -- Get a random job model, and set it accordingly
                 local randomJobModel = v.Models[math.random(#v.Models)]
                 SpawnI:SetModel(randomJobModel)
+                SpawnI.DoClick = function()
+                    net.Start("ChangeJob")
+                    net.WriteString(k)
+                    net.SendToServer()
+                end
             end
         end
 

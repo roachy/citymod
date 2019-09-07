@@ -73,3 +73,13 @@ end
 function playerMeta:SetMoney(amount)
     CityMod.Player:SetMoney(self, amount)
 end
+
+-- Changes the player's job
+function playerMeta:ChangeJob(jobName)
+    CityMod.Player:ChangeJob(self, jobName, force)
+end
+
+-- Sets the player's job variable
+function playerMeta:SetJob(jobName)
+    self.Job = jobName
+end

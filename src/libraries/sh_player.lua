@@ -539,11 +539,17 @@ function CityMod.Player:ChangeJob(ply, jobName, force)
         error("Job with name "..jobName.." could not be found", 2)
     end
 
-    -- Do checks here that should prevent a user from switching job, if they are ex. dead or so. Note that these can be bypassed with "force"
+    if (not ply:Alive()) then
+        ply:NotifyError("You cannot change job while dead")
+        return
+    end
 
+    if (not force) then
+        -- Do checks here that should prevent a user from switching job, if they are ex. unconscious, hurt, or so. Note that these can be bypassed with "force"
+    end
 
     -- Set the job on the player
-    ply.Job = job.Name
+    ply:SetJob(job.Name)
 
     -- Restore the player's health
     ply:SetHealth(100)
@@ -560,7 +566,16 @@ function CityMod.Player:ChangeJob(ply, jobName, force)
         net.WriteEntity(ply)
         net.WriteString(job.Name)
     net.Broadcast()
+
+    print(job.Name)
 end
+
+-- Handler for a player's job change request
+net.Receive("ChangeJob", function(len, ply)
+    local jobName = net.ReadString()
+
+    CityMod.Player:ChangeJob(ply, jobName) -- So far, a player CANNOT use "force". This can however change if the player may have a certain rank.
+end)
 
 
 end -- SHARED
