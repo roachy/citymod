@@ -43,7 +43,7 @@ function PANEL:Init()
 
 	sheet:AddSheet( "Character", panel1, "icon16/user.png" )
 
-	local panel2 = vgui.Create("DScrollPanel", sheet)
+	local panel2 = vgui.Create("CityModJobs", sheet)
 	sheet:AddSheet( "Jobs", panel2, "icon16/group.png" )
 
 

@@ -63,7 +63,8 @@ CityMod.File:IncludeDir("items/contraband")
 
 -- Load jobs
 CityMod.File:IncludeDir("jobs")
-CityMod.File:IncludeDir("jobs/default")
+CityMod.File:IncludeDir("jobs/citizens")
+CityMod.File:IncludeDir("jobs/criminals")
 CityMod.File:IncludeDir("jobs/government")
 
  -- Load settings for the current map
