@@ -118,7 +118,12 @@ function CityMod:PlayerSay(ply, str)
     end
     table.remove(args,1) -- Remove the command itself from the args table
 
-    ply:LogIP("used command: "..commandName)
+    if (#args > 0) then
+        ply:LogIP("used command \""..commandName.."\" with arguments: "..table.concat(args," "))
+    else
+        ply:LogIP("used command \""..commandName.."\"")
+    end
+
     command:Execute(ply,args) -- Execute the command
     return ""
 end

@@ -63,3 +63,13 @@ end
 function playerMeta:IsDonator()
     return self.Donator
 end
+
+-- Return the player's money
+function playerMeta:GetMoney()
+    return self.Money
+end
+
+-- Sets the player's money to the amount specified
+function playerMeta:SetMoney(amount)
+    self.Money = amount
+end
